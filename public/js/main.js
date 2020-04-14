@@ -2,6 +2,7 @@ var el = $('.tabs').first()[0];
 var instance = M.Tabs.init(el);
 
 $(document).ready(function () {
+    // built-in initialization method in materialize
     $('select').formSelect(); // TODO: 这是哪个方法？
     $('#signin').click(varifySignin);
     $('#signup').click(signUp);
