@@ -1,5 +1,6 @@
 var model = require('../models/models')
 var crypto = require('crypto');
+var md5 = crypto.createHash('md5');
 
 // show login page
 function showLoginPage(req, res) {
@@ -13,10 +14,16 @@ function resetPwd(req, res) {
 // User sign-in.
 function signIn(req, res) {
     let loginstat = false;
+    var reqdata = req.body;
 
-    console.log("[received data]" + JSON.stringify(req.body)) // Test line.
+    console.log("[received data]" + JSON.stringify(reqdata)) // Test line.
 
-    //TODO: Send query to DB
+    // TODO: Send query to DB
+    var userdata = {
+        email: reqdata["email"],
+        pwd: md5.update(reqdata["password"], 'utf8').digest('hex')
+    }
+
     loginstat = true;
     req.session.loginStatus = loginstat;
 
@@ -27,13 +34,22 @@ function signIn(req, res) {
 // User sign-up.
 function signUp(req, res) {
     let regStat = false;
+    var reqdata = req.body;
 
-    console.log("[receive data]" + JSON.stringify(req.body));
+    console.log("[received data]" + JSON.stringify(reqdata)) // Test line.
 
-    //TODO: Send query to DB
+    // TODO: Send query to DB
+    var userdata = {
+        email: reqdata["email"],
+        pwd: md5.update(reqdata["password"], 'utf8').digest('hex'),
+        firstname: reqdata["firstname"],
+        lastname: reqdata["lastname"],
+        question: reqdata["question"],
+        answer: reqdata["question"]
+    }
+
     regStat = true;
     req.session.loginStatus = regStat;
-
     res.send({registerStatus: regStat})
 }
 
