@@ -2,11 +2,32 @@ var el = $('.tabs').first()[0];
 var instance = M.Tabs.init(el);
 
 $(document).ready(function () {
-    // built-in initialization method in materialize
-    $('select').formSelect(); // TODO: 这是哪个方法？
+    $('select').formSelect(); // built-in initialization method in materialize
     $('#signin').click(varifySignin);
     $('#signup').click(signUp);
+    $('#reset-confirm').click(resetPwd);
 });
+
+// Check if a variable is empty
+function isEmpty(v) {
+    switch (typeof v) {
+        case 'undefined':
+            return true;
+        case 'string':
+            if (v.replace(/(^[ \t\n\r]*)|([ \t\n\r]*$)/g, '').length == 0) return true;
+            break;
+        case 'boolean':
+            if (!v) return true;
+            break;
+        case 'object':
+            if (null === v || v.length === 0) return true;
+            for (var i in v) {
+                return false;
+            }
+            return true;
+    }
+    return false;
+}
 
 //Verify input from sign-in page
 function varifySignin() {
@@ -16,8 +37,9 @@ function varifySignin() {
     }
 
     // Verify input data
-    if (formdata.email.length == 0 || formdata.password == 0) {
+    if (isEmpty(formdata.email) || isEmpty(formdata.password)) {
         M.toast({html: "Can not leave as empty!"})
+        return false
     } else {
         console.log(formdata); // Test line
 
@@ -28,9 +50,6 @@ function varifySignin() {
             dataType: 'JSON',
             data: formdata,
             success: function (res) {
-
-                alert(JSON.stringify(res)) //Test line.
-
                 if (res.loginStatus) {
                     window.location.href = '/main'
                 } else {
@@ -42,10 +61,9 @@ function varifySignin() {
     }
 }
 
+
 // Sign-up
 function signUp() {
-    //TODO: Verify input from sign-up page
-
     var formdata = {
         email: $('#re_email').val(),
         password: $('#re_password').val(),
@@ -55,20 +73,60 @@ function signUp() {
         answer: $('#answer').val(),
     }
 
-    $.ajax({
-        type: 'POST',
-        url: '/signup',
-        dataType: 'JSON',
-        data: formdata,
-        success: function (res) {
-            alert(JSON.stringify(res));//Test line.
-
-            if (res.registerStatus) {
-                window.location.href = '/main'
-            } else {
-                //TODO: Materialize toast
-                alert('Sign-up failed.')
+    if (isEmpty(formdata.email) || isEmpty(formdata.password)) {
+        M.toast({html: "Can not leave as empty!"})
+        return false
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: '/signup',
+            dataType: 'JSON',
+            data: formdata,
+            success: function (res) {
+                if (res.registerStatus) {
+                    window.location.href = '/main'
+                } else {
+                    // alert('Sign-up failed.')
+                    M.toast({html: "Sign-up failed, please try again."})
+                }
             }
-        }
-    });
+        });
+    }
+}
+
+// Reset password
+function resetPwd() {
+    var formdata = {
+        email: $("#reset_email").val(),
+        question: $("#reset_questions").val(),
+        answer: $("#reset_answer").val(),
+        old_pwd: $("#original").val(),
+        new_pwd: $("#new_pass").val()
+    }
+
+    if (isEmpty(formdata.email) || isEmpty(formdata.old_pwd) || isEmpty(formdata.new_pwd)) {
+        M.toast({html: "Can not leave as empty!"})
+        return false
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: '/valreset',
+            dataType: 'JSON',
+            data: formdata,
+            success: function (res) {
+                if (res.resetStatus) {
+                    window.location.href = '/'
+                } else {
+                    // alert('Sign-up failed.')
+                    M.toast({html: "Password reset failed, please try again."})
+                }
+            }
+        });
+    }
+}
+
+
+// Log out
+function userLogout() {
+    // TODO: Clear session and redirect to login page.
 }
