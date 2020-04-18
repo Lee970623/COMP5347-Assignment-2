@@ -18,7 +18,7 @@ function signIn(req, res) {
 
     console.log("[received data]" + JSON.stringify(reqdata)) // Test line.
 
-    // TODO: Send query to DB
+    // TODO: Send query to DB, then execute tht code below
     var userdata = {
         email: reqdata["email"],
         pwd: md5.update(reqdata["password"], 'utf8').digest('hex')
@@ -38,7 +38,7 @@ function signUp(req, res) {
 
     console.log("[received data]" + JSON.stringify(reqdata)) // Test line.
 
-    // TODO: Send query to DB
+    // TODO: Send query to DB, then execute tht code below
     var userdata = {
         email: reqdata["email"],
         pwd: md5.update(reqdata["password"], 'utf8').digest('hex'),

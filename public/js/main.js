@@ -7,35 +7,38 @@ $(document).ready(function () {
     $('#signup').click(signUp);
 });
 
-//Varify input from sign-in page
+//Verify input from sign-in page
 function varifySignin() {
-    // TODO: Verify input data
-
     var formdata = {
         email: $('#email').val(),
         password: $('#password').val()
     }
 
-    console.log(formdata); // Test line
+    // Verify input data
+    if (formdata.email.length == 0 || formdata.password == 0) {
+        M.toast({html: "Can not leave as empty!"})
+    } else {
+        console.log(formdata); // Test line
 
-    // Post form data to contorller
-    $.ajax({
-        type: 'POST',
-        url: '/signin',
-        dataType: 'JSON',
-        data: formdata,
-        success: function (res) {
+        // Post form data to contorller
+        $.ajax({
+            type: 'POST',
+            url: '/signin',
+            dataType: 'JSON',
+            data: formdata,
+            success: function (res) {
 
-            alert(JSON.stringify(res)) //Test line.
+                alert(JSON.stringify(res)) //Test line.
 
-            if (res.loginStatus) {
-                window.location.href = '/main'
-            } else {
-                alert("Wrong username or password.")
-                //TODO: Change to toast
+                if (res.loginStatus) {
+                    window.location.href = '/main'
+                } else {
+                    //alert("Wrong username or password.")
+                    M.toast({html: "Wrong username or password."})
+                }
             }
-        }
-    })
+        })
+    }
 }
 
 // Sign-up
