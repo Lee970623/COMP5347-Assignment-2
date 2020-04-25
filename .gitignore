@@ -1,6 +1,8 @@
 # Node packages
 node_modules/
 package-lock.json
+package.json
+
 
 # Idea config files
 /.idea
