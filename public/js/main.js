@@ -65,11 +65,11 @@ function varifySignin() {
 // Sign-up
 function signUp() {
     var formdata = {
-        email: $('#re_email').val(),
+        email: $("#re_email").val(),
         password: $('#re_password').val(),
         firstname: $('#firstname').val(),
         lastname: $('#lastname').val(),
-        question: $('#questions').val(),
+        question: $("#questions").val(),
         answer: $('#answer').val(),
     }
 

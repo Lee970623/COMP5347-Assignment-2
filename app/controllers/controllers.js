@@ -1,6 +1,5 @@
 var model = require('../models/models')
 var crypto = require('crypto');
-var md5 = crypto.createHash('md5');
 
 // show login page
 function showLoginPage(req, res) {
@@ -15,6 +14,7 @@ function resetPwd(req, res) {
 function validateResetPwd(req, res) {
     var resetStat = false
     var reqdata = req.body;
+    var md5 = crypto.createHash('md5');
 
     console.log("[received data][reset pwd]" + JSON.stringify(reqdata))
 
@@ -36,6 +36,8 @@ function validateResetPwd(req, res) {
 function signIn(req, res) {
     let loginstat = false;
     var reqdata = req.body;
+    var md5 = crypto.createHash('md5');
+
     console.log("[received data][sign-in]" + JSON.stringify(reqdata))
 
     var userdata = {
@@ -43,18 +45,30 @@ function signIn(req, res) {
         pwd: md5.update(reqdata["password"], 'utf8').digest('hex')
     }
 
-    // TODO: Send query to DB, then execute tht code below
-    loginstat = true;
-    req.session.loginStatus = loginstat;
+    // Send query to DB
+    model.signIn(userdata).then(function (re){
+        if (re.length > 0){
+            loginstat = true;
+            req.session.loginStatus = loginstat;
 
-    // Return data to ajax method so that success callback can execute.
-    res.send({loginStatus: loginstat})
+            console.log("user login success: " + userdata.email)
+            // Return data to ajax method so that success callback can execute.
+            res.send({loginStatus: loginstat})
+        }else{
+            console.log("user login failed: " + userdata.email)
+        }
+    }).catch(function (e){
+        console.log(e);
+        res.send({loginStatus: loginstat})
+    });
 }
 
 // User sign-up.
 function signUp(req, res) {
     let regStat = false;
     var reqdata = req.body;
+    var md5 = crypto.createHash('md5');
+
     console.log("[received data][sign-up]" + JSON.stringify(reqdata))
 
     var userdata = {
@@ -66,10 +80,17 @@ function signUp(req, res) {
         answer: reqdata["question"]
     }
 
-    // TODO: Send query to DB, then execute tht code below
-    regStat = true;
-    req.session.loginStatus = regStat;
-    res.send({registerStatus: regStat})
+    // Send query to DB
+    model.signUp(userdata).then(function (){
+        regStat = true;
+        req.session.loginStatus = regStat;
+
+        console.log("Use sign-up: " + userdata.email)
+        res.send({registerStatus: regStat})
+    }).catch(function (e){
+        console.log(e);
+        res.send({registerStatus: regStat})
+    });
 }
 
 
