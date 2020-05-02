@@ -1,6 +1,13 @@
 var model = require('../models/models')
 var crypto = require('crypto');
 
+// Global variables
+var top_num = 2; // Top numbers used in overall analytics
+
+/*---------------------------
+    Login page controllers.
+---------------------------*/
+
 // show login page
 function showLoginPage(req, res) {
     res.render("index.ejs");
@@ -16,7 +23,7 @@ function validateResetPwd(req, res) {
     var reqdata = req.body;
     var md5 = crypto.createHash('md5');
 
-    console.log("[received data][reset pwd]" + JSON.stringify(reqdata))
+    console.log("[reset pwd]" + JSON.stringify(reqdata))
 
     var userdata = {
         email: reqdata["email"],
@@ -38,7 +45,7 @@ function signIn(req, res) {
     var reqdata = req.body;
     var md5 = crypto.createHash('md5');
 
-    console.log("[received data][sign-in]" + JSON.stringify(reqdata))
+    console.log("[sign-in]" + JSON.stringify(reqdata))
 
     var userdata = {
         email: reqdata["email"],
@@ -69,7 +76,7 @@ function signUp(req, res) {
     var reqdata = req.body;
     var md5 = crypto.createHash('md5');
 
-    console.log("[received data][sign-up]" + JSON.stringify(reqdata))
+    console.log("[sign-up]" + JSON.stringify(reqdata))
 
     var userdata = {
         email: reqdata["email"],
@@ -85,7 +92,7 @@ function signUp(req, res) {
         regStat = true;
         req.session.loginStatus = regStat;
 
-        console.log("Use sign-up: " + userdata.email)
+        console.log("user sign-up: " + userdata.email)
         res.send({registerStatus: regStat})
     }).catch(function (e){
         console.log(e);
@@ -105,5 +112,71 @@ function mainPageTest(req, res) {
     }
 }
 
+// User logout
+function logOut(req, res) {
+    req.session.destroy();
+    res.redirect('/');
+}
+
+
+/*-----------------------------------
+    Overview analytics controllers
+------------------------------------*/
+
+// Top 2 edited articles with highest number of revisions
+function topHighestRevision(req, res){
+    var article, revision_num
+
+    //TODO:
+    return article, revision_num
+}
+
+// Top 2 edited articles with lowest number of revisions
+function topLowestRevision(req, res){
+    var article, revision_num
+    //TODO:
+    return article, revision_num
+}
+
+// Top 2 edited articles with largest number of users (non-bots)
+function topLargestEdit(req, res){
+    var article, group_size
+    //TODO:
+    return article, group_size
+}
+
+// Top 2 edited article with smallest number of users (non-bots)
+function topSmallestEdit(req, res){
+    var article, group_size
+    //TODO:
+    return article, group_size
+}
+
+// Top 2 longest history.
+function topLongestHistory(req, res){
+    var article, age
+
+    //TODO:
+    return article, age
+}
+
+// Top 2 shortest history
+function topShortestHistory(req, res){
+    var article, age
+
+    //TODO:
+    return article, age
+}
+
+
+
 // exports
-module.exports = {showLoginPage, resetPwd, validateResetPwd, signIn, signUp, mainPageTest};
+module.exports = {
+    showLoginPage,
+    resetPwd,
+    validateResetPwd,
+    signIn,
+    signUp,
+    logOut,
+    mainPageTest
+};

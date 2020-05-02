@@ -8,5 +8,6 @@ router.post('/signup', controller.signUp);
 router.get('/reset', controller.resetPwd);
 router.post('/valreset', controller.validateResetPwd);
 router.get('/main', controller.mainPageTest);
+router.get('/logout', controller.logOut);
 
 module.exports = router;

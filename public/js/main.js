@@ -6,6 +6,7 @@ $(document).ready(function () {
     $('#signin').click(varifySignin);
     $('#signup').click(signUp);
     $('#reset-confirm').click(resetPwd);
+    $("#logout").click(userLogout);
 });
 
 // Check if a variable is empty
@@ -128,5 +129,9 @@ function resetPwd() {
 
 // Log out
 function userLogout() {
-    // TODO: Clear session and redirect to login page.
+    $.ajax({
+        type: 'GET',
+        url: '/logout',
+        dataType: 'JSON',
+    });
 }
