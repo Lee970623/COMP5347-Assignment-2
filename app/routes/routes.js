@@ -1,13 +1,20 @@
 var express = require('express')
-var controller = require('../controllers/controllers.js')
+var index_controller = require('../controllers/index.controller.js')
+var analytic_controller = require('../controllers/analytic.controller')
 var router = express.Router()
 
-router.get('/', controller.showLoginPage);
-router.post('/signin', controller.signIn);
-router.post('/signup', controller.signUp);
-router.get('/reset', controller.resetPwd);
-router.post('/valreset', controller.validateResetPwd);
-router.get('/main', controller.mainPageTest);
-router.get('/logout', controller.logOut);
+// Login/Signup page contollers
+router.get('/', index_controller.showLoginPage);
+router.post('/signin', index_controller.signIn);
+router.post('/signup', index_controller.signUp);
+router.get('/reset', index_controller.resetPwd);
+router.post('/valreset', index_controller.validateResetPwd);
+router.get('/logout', index_controller.logOut);
+router.get('/main', index_controller.mainPageTest);
+
+// Analytic page controllers
+router.get('/analytic/changetopnum', analytic_controller.changeTopNumber);
+router.get('/analytic/tophighestrevision', analytic_controller.topHighestRevision);
+//TODO: rest of the controllers
 
 module.exports = router;
