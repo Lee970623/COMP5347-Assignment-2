@@ -45,7 +45,8 @@ userSchema.statics.signUp = function(signUpData){
         answerForSecurityQuestion: signUpData.answer,
         password: signUpData.pwd
     }
-    return this.insertOne(newUser);
+    //Use create instead of insert or insertOne, since mongoose doesn't have these two
+    return this.create(newUser)
 }
 
 //User sign in
@@ -60,60 +61,86 @@ userSchema.statics.signIn = function(signInData){
 
 //User reset the PWD
 userSchema.statics.resetPWD = function(resetData){
-    var user = {
-        emailAddress: resetData.email,
-        securityQuesion: resetData.question,
-        answerForSecurityQuestion: resetData.answer,
-        password: resetData.old_pwd
+    var query = {
+    "emailAddress" : resetData.email, 
+    "securityQuesion" : resetData.question, 
+    "answerForSecurityQuestion" : resetData.answer, 
+    "password" : resetData.old_pwd
     }
-    return this.find(user).update({$set:{password: resetData.new_pwd}});
+    console.log(query);
+    var update = {
+        $set:{"password": resetData.new_pwd}
+    }
+    var options = {
+        "new": true,
+        "rawResult":true
+    }
+    return this.findOneAndUpdate(
+        query,
+        update,
+        options,
+        function(err, doc){
+            if(err){
+                console.log("FindOneAndUpdat: " + err);
+            }else{
+                console.log(doc);
+            }
+            console.log(doc);
+        }
+    )
+    // return this.updateOne(query,{$set:{"password":resetData.new_pwd}},function(err,res){
+    //     if(err){
+    //         console.log("UpdateOne: " + err);
+    //     }
+    //     console.log(res);
+    // });
 }
 
 var user = db.model('User',userSchema,'users');
 
 //Wiki_pedia user schema
-var botUserSchema = new db.Schema(
-    {
-        user: String,
-        usertype: String
-    },
-    {
-        versionKey: false
-    }
-);
+// var botUserSchema = new db.Schema(
+//     {
+//         user: String,
+//         usertype: String
+//     },
+//     {
+//         versionKey: false
+//     }
+// );
 
-var botUser = db.model('BotUser', botUserSchema)
+// var botUser = db.model('BotUser', botUserSchema)
 
 
-var adminUserSchema = db.Schema(
-    {
-        user: String,
-        usertype: String
-    },
-    {
-        versionKey: false
-    }
-);
+// var adminUserSchema = db.Schema(
+//     {
+//         user: String,
+//         usertype: String
+//     },
+//     {
+//         versionKey: false
+//     }
+// );
 
-var adminUser = db.model('AdminUser', adminUserSchema)
+// var adminUser = db.model('AdminUser', adminUserSchema)
 
-function addTextToModel(model, text, type){
-    const fileStream = fs.createReadStream(text);
+// function addTextToModel(model, text, type){
+//     const fileStream = fs.createReadStream(text);
 
-    const rl = readline.createInterface({
-        input: fileStream,
-        console: false
-    })
+//     const rl = readline.createInterface({
+//         input: fileStream,
+//         console: false
+//     })
 
-    rl.on('line',function(line){
-        //console.log(line);
-        model.create(JSON.parse("{\"user\" :\"" + line.toString() + "\"," +
-        "\"usertype\" :\"" + type.toString() + "\"}" ));
-    })
-}
+//     rl.on('line',function(line){
+//         //console.log(line);
+//         model.create(JSON.parse("{\"user\" :\"" + line.toString() + "\"," +
+//         "\"usertype\" :\"" + type.toString() + "\"}" ));
+//     })
+// }
 
-addTextToModel(botUser, "../../public/data/Dataset_22_March_2020/bots.txt", "bot")
-addTextToModel(adminUser, "../../public/data/Dataset_22_March_2020/administrators.txt", "admin")
+// addTextToModel(botUser, "../../public/data/Dataset_22_March_2020/bots.txt", "bot")
+// addTextToModel(adminUser, "../../public/data/Dataset_22_March_2020/administrators.txt", "admin")
 
 //Revision Schema for revision record
 var revisionSchema = new db.Schema(
@@ -129,6 +156,7 @@ var revisionSchema = new db.Schema(
         versionKey: false
     }
 );
+
 //Overall Analytics
 // The top two articles with the highest number of revisions and their number of revisions.
 // The top two articles with the lowest number of revisions and their number of revisions.
@@ -146,6 +174,7 @@ revisionSchema.statics.findArticlesAndRevisionNumber = function(direction = 1, l
     ]
     return this.aggregate(pipeline).exec(callback);
 }
+
 // The top two articles edited by the largest group of registered users (non bots) and their group size. 
 // Each wiki article is edited by a number of users, some making multiple revisions. 
 // The number of unique users is a good indicator of an article’s popularity.
@@ -195,8 +224,8 @@ revisionSchema.statics.findArticlesWithHistoryAndDuration = function(direction =
         {
             $project:{
                 title: "$title",
-                daysince : { $trunc:
-                        {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60*24]}
+                daysSinceCreatedTime : { $trunc:
+                        {$divide: [{$subtract:[new Date(), "$createdTime"]}, 1000*60*60*24]}
                 }
             }
         }
@@ -205,8 +234,230 @@ revisionSchema.statics.findArticlesWithHistoryAndDuration = function(direction =
 }
 // The user should be provided with a way to change the number of top articles shown, e.g. for highest and lowest number of revisions. The selected number should be applied to all categories above
 
+//A bar chart of revision number distribution by year and by user type across the whole dataset. 
+//There should also be an option to switch between bar chart and line chart.
+revisionSchema.statics.getRevisionNumberByYearAndByUserType = function(callback){
+    pipeline = [
+        {
+            $group : {
+                _id : {year : {$year: "$date"}},
+                regular: {
+                    $sum:{$cond: [{ $eq:[ "$usertype", "registered" ]},1,0] }
+                },
+                anonymous: {
+                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "anonymous" ]},1,0] }
+                },
+                admin: {
+                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "admin" ]},1,0] }
+                },
+                bot: {
+                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "bot" ]},1,0] }
+                }
+            }
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback);
+}
+
+//A pie chart of revision number distribution 
+//by user type across the whole data set
+revisionSchema.statics.getRevisionNumberByUserType = function(callback){
+    pipeline = [
+        {
+            $group : {
+                _id : {usertype: "$usertype"},
+                count: {$sum : 1}
+            }
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback);
+}
+
 
 //Individual Article Analytics
+//Get all available articles title in the data set
+//also show total number of revisions, next to the article title in the drop-down list
+revisionSchema.statics.getAllAvaliableArticlesTitle = function(callback){
+    pipeline = [
+        {
+            $group : {
+                _id: {title: "$title"},
+                count: {$sum : 1}
+            }
+        },
+        {
+            $sort : {"_id" : 1}
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback);
+}
+
+//Once an end user selects an article, your application needs to check 
+//if the history of that article in the database is up to date. 
+//If it return the mostRecent is less than 24, it's up to date,
+//otherwise no.
+revisionSchema.statics.isArticleUpToDate  = function(title,callback){
+    pipeline = [
+        {
+            $match : {"title":title}
+        },
+        {
+            $sort : {"date": -1}
+        },
+        {
+            $limit: 1
+        },
+        {
+            $project : {mostRecent:{
+                $trunc:
+                        {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
+                    }
+                }
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback);
+}
+
+revisionSchema.statics.getTheLastestArticle = function(title, lastdate, callback){
+
+}
+
+
+//The top 5 regular users ranked by total revision numbers on this article, 
+//and the respective revision numbers
+revisionSchema.statics.topFiveUsersOfOneArticleRankedByRevisionNumbers = function(title, callback){
+    pipeline = [
+        {
+            $match : {"$title": title, "usertype": "regular"}
+        },
+        {
+            $group : {
+                _id : {user : "$user"},
+                count : {$sum:1}
+            }
+        },
+        {
+            $sort : {"count" : -1}
+        },
+        {
+            $limit:5
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
+
+//The top 3 news about the selected individual article obtained using Reddit API. 
+//You need to show the top 3 posts 
+//from r/news
+//from "all time" by showing the titles and the correspond links. 
+//For example. if the selected individual article is "Australia", 
+//then you need to search for "Australia" in the subreddit r/news 
+//and show a list like this:
+
+
+//A bar chart of revision number 
+//distributed by year and by user type for this article.
+revisionSchema.statics.getYearAndUsertypeDistributionOfOneArticle = function(title,callback){
+    var pipeline = [
+        {
+            $match : {"title" : title}
+        },
+        {
+            $group : {
+                _id : {year : {$year: "$date"}},
+                regular: {
+                    $sum:{$cond: [{ $eq:[ "$usertype", "regular" ]},1,0] }
+                },
+                anonymous: {
+                    $sum:{$cond: [{ $eq:[ "$usertype", "anonymous" ]},1,0] }
+                },
+                admin: {
+                    $sum:{$cond: [{ $eq:[ "$usertype", "admin" ]},1,0] }
+                },
+                bot: {
+                    $sum:{$cond: [{ $eq:[ "$usertype", "bot" ]},1,0] }
+                }
+            }
+        },
+        {
+            $sort : {"_id":1}
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
+
+//A pie chart of revision number 
+//distribution based on user type for this article.
+revisionSchema.statics.getUsertypeDistributionOfOneArticle = function(title,callback){
+    var pipeline = [
+        {
+            $match : {"title":title}
+        },
+        {
+            $group : {
+                _id : {usertype:"$usertype"},
+                count : {$sum:1},
+            }
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
+
+//A bar chart of revision number distributed by year made by one of the top 5 regular users 
+//for this article. 
+//For this chart, you need provide a way to select a user from the top 5 list.
+revisionSchema.statics.getRevisionDistributionByYearMadeFromOneUserToOneArticle = function(title, user, callback){
+    var pipeline = [
+        {
+            $match: {"title":title,"user":user}
+        },
+        {
+            $group : {
+                _id : {year:{$year:"$date"}},
+                count : {$sum: 1}
+            }
+        },
+        {
+            $sort : {"_id":1}
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
+
+//Author Analysis
+//Return all authors including admin, bot and regular users
+revisionSchema.statics.getAllAuthors = function(callback){
+    pipeline = [
+        {
+            $group:{
+                _id : "$user",
+            }
+        },
+        {
+            $sort:{"_id":1}
+        }
+    ]
+    return this.aggregate(callback)
+}
+//After select an author, return the article made by the author with the counts and timestamp
+revisionSchema.statics.getAllArticlesAndNumberMadeByAuthor = function(author, callback){
+    var pipeline = [
+        {
+            $match:{"user": author}
+        },
+        {
+            $group:{
+                _id:{user:"$user", title:"$title"},
+                count:{$sum:1},
+                timestamp: {$addToSet:"$date"}
+            }
+        },
+        {
+            $sort:{"_id":1}
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
 
 var revisions = db.model("Revision",revisionSchema);
 
@@ -234,7 +485,7 @@ function readTextAndUpdateUsertypeForRevison(file, type){
 }
 
 readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/bots.txt", "bot")
-readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/administrators.txt", "administrator")
+readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/administrators.txt", "admin")
 
 revisions.updateMany(
     {anon:{$exists:true}},
@@ -265,11 +516,11 @@ revisions.updateMany(
                 $dateFromString :{ dateString: "$timestamp"}
             }
         }
-    },
+    }
     // {
     //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
     // }
-    // ],
+    ],
     function(err){
         if(err){
             console.error(err)
@@ -281,18 +532,28 @@ revisions.updateMany(
 
 module.exports = {user,revisions};
 //***Test***
-// var test = db.connection;
-// test.on('error',console.error.bind(console,'connection error: '));
-// test.once('open', function(){
-//     // var input = {
-//     //     'email': "test@1234.com",
-//     //     'firstname': "Test",
-//     //     'lastname': "Test",
-//     //     'question': "Test Answer",
-//     //     'pwd': "123456"
-//     //     }
-
-//     // user.signUp(input);
-//     // user.signIn(input);
-//     //updateUsertypeForRevison(botUser,adminUser,revisions);
-// })
+var test = db.connection;
+test.on('error',console.error.bind(console,'connection error: '));
+test.once('open', function(){
+    var input = {
+        'email': "test00@1234.com",
+        'firstname': "Test",
+        'lastname': "Test",
+        'question': "Test Question",
+        'answer':"Test Answer",
+        'pwd': "123456"
+        }
+    
+    var reset = {
+        'email': "test00@1234.com",
+        'firstname': "Test",
+        'lastname': "Test",
+        'question':"Test Question",
+        'answer': "Test Answer",
+        'old_pwd': "111111",
+        'new_pwd':"666666"
+    }
+    //user.signUp(input);
+    user.signIn(input);
+    user.resetPWD(reset)
+})
