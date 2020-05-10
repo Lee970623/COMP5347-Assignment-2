@@ -13,8 +13,10 @@ router.get('/logout', index_controller.logOut);
 router.get('/main', index_controller.mainPageTest);
 
 // Analytic page controllers
-router.get('/analytic/changetopnum', analytic_controller.changeTopNumber);
-router.get('/analytic/tophighestrevision', analytic_controller.topHighestRevision);
-//TODO: rest of the controllers
+router.get('/analytic/view_overall', analytic_controller.viewOverall);
+router.get('/analytic/view_charts', analytic_controller.viewDistribution);
+router.get('/analytic/view_individual', analytic_controller.getArticleInfo);
+router.get('/analytic/update_article', analytic_controller.updateArticle);
+router.get('/analytics/view_author', analytic_controller.viewArticleByAuthor);
 
 module.exports = router;

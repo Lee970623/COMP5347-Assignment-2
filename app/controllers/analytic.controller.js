@@ -1,69 +1,102 @@
 var model = require('../models/models')
-
-// Global variables
-var top_num = 2; // Top numbers used in overall analytics
+var request = require('request')
 
 /*-----------------------------------
-    Overview analytics controllers
+    Overview analytics
+------------------------------------*/
+function viewOverall(req, res){
+    let reqdata = req.body;
+
+    var querydata = {
+        "topnum": reqdata["topnum"]
+    }
+
+    // TODO: multiple query request
+    var returns = {
+        "top_revision": {},
+        "top_edit": {},
+        "top_history": {}
+    };
+
+    res.send(returns)
+}
+
+// Send query to DB and get the distribution of users.
+function viewDistribution(req, res){
+    let reqdata = req.body;
+
+    var querydata = {
+        "usertype": "",
+    }
+
+    // TODO: db query
+    var distribution_usertype = {
+        "admin": 0,
+        "bot": 0,
+        "anonymous": 0,
+        "registered": 0
+    }
+
+    var distribution_year = [
+        {
+            "year": "2001",
+            "admin": 0,
+            "bot": 0,
+            "anonymous": 0,
+            "registered": 0
+        },
+        {
+            // TODO: generate json object from query result.
+        }
+    ]
+
+    var returns = {
+        "by_usertype": distribution_usertype,
+        "by_year": distribution_year
+    }
+    res.send(returns)
+}
+
+/*-----------------------------------
+    Individual article analytics
 ------------------------------------*/
 
-// Top 2 edited articles with highest number of revisions
-function topHighestRevision(req, res){
-    var article, revision_num;
+function getArticleInfo(req, res){
+    let reqdata = req.body;
 
-    //TODO: finish the controller
+    // TODO: send query
 
+    var returns = {
+        "history": 0,
+        "is_uptodate": false,
+        "revisions": 0
+    }
 
-    return article, revision_num
+    res.send(returns);
 }
 
-// Top 2 edited articles with lowest number of revisions
-function topLowestRevision(req, res){
-    var article, revision_num
-    //TODO:
-    return article, revision_num
-}
-
-// Top 2 edited articles with largest number of users (non-bots)
-function topLargestEdit(req, res){
-    var article, group_size
-    //TODO:
-    return article, group_size
-}
-
-// Top 2 edited article with smallest number of users (non-bots)
-function topSmallestEdit(req, res){
-    var article, group_size
-    //TODO:
-    return article, group_size
-}
-
-// Top 2 longest history.
-function topLongestHistory(req, res){
-    var article, age
-
-    //TODO:
-    return article, age
-}
-
-// Top 2 shortest history
-function topShortestHistory(req, res){
-    var article, age
-
-    //TODO:
-    return article, age
-}
-
-function changeTopNumber(req, res){
+function updateArticle(req, res){
+    let reqdata = req.body;
+    var wiki_url = "https://en.wikipedia.org/w/api.php";
+    var parameter = ""
+    // TODO: call MediaWiki API
 
 }
+
+
+/*-----------------------------------
+          Author analytics
+------------------------------------*/
+
+function viewArticleByAuthor(req, res){
+
+}
+
 
 module.exports = {
-    topHighestRevision,
-    topLowestRevision,
-    topLargestEdit,
-    topSmallestEdit,
-    topLongestHistory,
-    topShortestHistory,
-    changeTopNumber
+    viewOverall,
+    viewDistribution,
+    getArticleInfo,
+    updateArticle,
+    viewArticleByAuthor
 };
