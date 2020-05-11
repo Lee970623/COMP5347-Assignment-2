@@ -85,20 +85,19 @@ function getArticleInfo(req, res){
 // Update article`s revisions by calling Wikipedia`s API.
 function updateArticle(req, res){
     let reqdata = req.body;
+    const wiki_url = "https://en.wikipedia.org/w/api.php";
+    // // Test case
+    // var url = "https://en.wikipedia.org/w/api.php" +
+    //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
     // TODO: send query
 
     // query result from model
     var result = {}
 
-    var wiki_url = "https://en.wikipedia.org/w/api.php";
     var parameter = "action=query&format=json&prop=revisions&"+
         `titles=${reqdata.article}&rvstart=${result.last_date.toISOString()}`+
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
-
-    // // Test case
-    // var url = "https://en.wikipedia.org/w/api.php" +
-    //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
     var updated_list = [];
     request(url, function (error, response, data) {
@@ -112,6 +111,14 @@ function updateArticle(req, res){
             if (rev_list.length > 0){
                 for (let i=0; i< rev_list.length; i++){
                     var single_rev = rev_list[i]
+                    var current_time = new Date();
+                    var rev_time = new Date(single_rev.timestamp)
+
+                    // Skip the same revision
+                    if (single_rev.timestamp == result.last_date.toISOString()) {
+                        continue;
+                    }
+
                     var temp_rev = {
                         "title": reqdata.article,
                         "timestamp": single_rev.timestamp,
@@ -119,17 +126,13 @@ function updateArticle(req, res){
                         "user": single_rev.user,
                         "userid": single_rev.userid,
                     }
-
-                    var current_time = new Date();
-                    var rev_time = new Date(single_rev.timestamp)
-                    if (single_rev.timestamp == result.last_date.toISOString()) {
-                        i++;
-                    }
                     updated_list.push(temp_rev)
                 }
             }
         }
     });
+
+    // TODO: call model to update revisions
 
     res.send({"updated_num": updated_list.length})
 }
