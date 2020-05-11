@@ -3,6 +3,8 @@ node_modules/
 package-lock.json
 package.json
 
+# Testing script
+app/controllers/test.js
 
 # Idea config files
 /.idea

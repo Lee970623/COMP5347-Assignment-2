@@ -22,10 +22,12 @@ function checkArticle() {
 
             if(! res.is_uptodate){
                 updateArticle(formdata);
+            } else{
+                M.toast({html: "Article is up-to-date."})
             }
         },
         error: function (xhr) {
-            M.toast({html: "Error: " + xhr.status + " " + xhr.statusText})
+            M.toast({html: "Error in checkArticle: " + xhr.status + " " + xhr.statusText})
         }
     });
 }
@@ -39,15 +41,18 @@ function updateArticle(formdata) {
         data: formdata,
         dataType: 'JSON',
         success: function (res) {
-            // TODO: get number of updates
+            update_num = res.updated_num
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in updateArticle: " + xhr.status + " " + xhr.statusText})
         }
     });
 
     if(update_num > 0){
-        var message = "Updated " + update_num + " revisions"
-        M.toast({html: message})
+        var message = "Updated " + update_num + " revisions";
+        M.toast({html: message});
     } else{
-        M.toast({html: "No new revisions downloaded."})
+        M.toast({html: "No new revisions on wiki."});
     }
 }
 
