@@ -17,6 +17,8 @@ router.get('/analytic/view_overall', analytic_controller.viewOverall);
 router.get('/analytic/view_charts', analytic_controller.viewDistribution);
 router.get('/analytic/view_individual', analytic_controller.getArticleInfo);
 router.get('/analytic/update_article', analytic_controller.updateArticle);
-router.get('/analytics/view_author', analytic_controller.viewArticleByAuthor);
+router.get('/analytic/view_article_summary', analytic_controller.viewArticleSummary);
+router.get('/analytic/get_reddit_posts', analytic_controller.getRedditPosts);
+router.get('/analytics/view_author', analytic_controller.viewArticleChangedByAuthor);
 
 module.exports = router;

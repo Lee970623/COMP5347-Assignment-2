@@ -119,6 +119,7 @@ function updateArticle(req, res){
                         continue;
                     }
 
+                    // Build the revision data
                     var temp_rev = {
                         "title": reqdata.article,
                         "timestamp": single_rev.timestamp,
@@ -137,13 +138,68 @@ function updateArticle(req, res){
     res.send({"updated_num": updated_list.length})
 }
 
+// Show the summary information for the selected article
+function viewArticleSummary(req, res) {
+    var reqdata = req.body;
+    var returns = {
+        "revision_num": 0,
+        "top5_user": [],
+        "top5_user_rev": []
+    }
+
+    // TODO: db query
+
+    res.send(returns)
+}
+
+// Call Reddit API to get top 3 rated posts
+function getRedditPosts(req, res) {
+    var reqdata = req.body;
+    var url = "https://www.reddit.com/r/news/search.json?q="
+        + reqdata.title
+        + "&restrict_sr=on&sort=top&t=all&limit=3"
+
+    var returns = []
+
+    request(url, function (error, response, data) {
+        if(error){
+            console.log(error)
+        }else if(response.statusCode != 200){
+            console.log(response.statusCode)
+        }else {
+            var posts = JSON.parse(response.body).data.children
+            for (var s of posts){
+                var temp = {
+                    "title": s.data.title,
+                    "url": s.data.url
+                }
+                returns.push(temp)
+            }
+        }
+    });
+
+    res.send(returns)
+}
 
 /*-----------------------------------
           Author analytics
 ------------------------------------*/
 
-function viewArticleByAuthor(req, res){
+function viewArticleChangedByAuthor(req, res){
+    var reqdata = req.body;
+    var returns = [
+        {
+            "title": "",
+            "timestamp": "",
+            "revision_num": 0
+        }
+    ];
 
+    //TODO: db query
+
+    //TODO: build returns with query results
+
+    res.send(returns)
 }
 
 
@@ -152,5 +208,7 @@ module.exports = {
     viewDistribution,
     getArticleInfo,
     updateArticle,
-    viewArticleByAuthor
+    viewArticleSummary,
+    getRedditPosts,
+    viewArticleChangedByAuthor
 };

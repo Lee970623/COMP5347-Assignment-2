@@ -1,9 +1,13 @@
 $(document).ready(function () {
-    $("#input_name").click(searchAuthor);
+    var elems = document.querySelectorAll('.autocomplete');
+    var instance = M.Autocomplete.getInstance(elems);
+    updateAutoComplete(instance);
+
+    $("#search_author").click(searchAuthor);
 });
 
 function searchAuthor() {
-    var formdata = {}
+    var formdata = {"author": $("#input_author").val()}
 
     $.ajax({
         type: 'GET',
@@ -11,7 +15,16 @@ function searchAuthor() {
         data: formdata,
         dataType: 'JSON',
         success: function () {
-            // TODO:
+            // TODO: display articles for the selected user
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in searchAuthor: " + xhr.status + " " + xhr.statusText})
         }
     });
+}
+
+function updateAutoComplete(instance) {
+    instance.updateData({
+        //TODO: author list
+    })
 }
