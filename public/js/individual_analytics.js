@@ -1,7 +1,7 @@
 $(document).ready(function () {
-    $("#select_article").click(checkArticle);
-    $("#show_article_info").click(displaySummary);
-    $("#filter").click(filterSummaryAndChart);
+    $("select option:selected").click(checkArticle);
+    $("#searchArticle").click(displaySummary);
+    $("#filter").click(filterSummaryAndChart); //TODO: to be confirmed
 })
 
 // Check if the selected article is up-to-date
@@ -61,7 +61,6 @@ function updateArticle(formdata) {
 
 // Display summary imformation for the selected article.
 function displaySummary() {
-    // TODO: display content
     var formdata = {"title": $("#selected_article").val()}
     var summary = {
         "title": title,

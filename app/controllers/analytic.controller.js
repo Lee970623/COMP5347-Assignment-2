@@ -148,6 +148,7 @@ function viewArticleSummary(req, res) {
     }
 
     // TODO: db query
+    // TODO: regular users
 
     res.send(returns)
 }
@@ -190,13 +191,17 @@ function viewArticleChangedByAuthor(req, res){
     var returns = [
         {
             "title": "",
-            "timestamp": "",
+            "timestamps": [], // Timestamps of all revisions for this article
             "revision_num": 0
         }
     ];
 
     //TODO: db query
+    var result;
 
+    for (var ec of result){
+
+    }
     //TODO: build returns with query results
 
     res.send(returns)
