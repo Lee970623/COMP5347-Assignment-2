@@ -8,3 +8,5 @@ app/controllers/test.js
 
 # Idea config files
 /.idea
+public/data/.DS_Store
+public/data/Dataset_22_March_2020/.DS_Store
