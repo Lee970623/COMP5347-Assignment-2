@@ -67,33 +67,26 @@ userSchema.statics.resetPWD = function(resetData){
     "answerForSecurityQuestion" : resetData.answer, 
     "password" : resetData.old_pwd
     }
-    console.log(query);
     var update = {
         $set:{"password": resetData.new_pwd}
     }
     var options = {
-        "new": true,
-        "rawResult":true
+        new: true,
+        rawResult: true
     }
+
     return this.findOneAndUpdate(
         query,
         update,
         options,
         function(err, doc){
             if(err){
-                console.log("FindOneAndUpdat: " + err);
+                console.log("Error in FindOneAndUpdate: " + JSON.stringify(err));
             }else{
-                console.log(doc);
+                console.log("[updated]: "+JSON.stringify(doc))
             }
-            console.log(doc);
         }
     )
-    // return this.updateOne(query,{$set:{"password":resetData.new_pwd}},function(err,res){
-    //     if(err){
-    //         console.log("UpdateOne: " + err);
-    //     }
-    //     console.log(res);
-    // });
 }
 
 var user = db.model('User',userSchema,'users');
@@ -182,7 +175,7 @@ revisionSchema.statics.findArticlesAndRevisionNumber = function(direction = 1, l
 revisionSchema.statics.findArticlesAndRevisionNumberFromRegisteredUsers = function(direction = 1, limits = 2, callback){
     pipeline = [
         {
-            $match:{usertype:"registered"}
+            $match:{usertype:"regular"}
         },
         {
             $group:{
@@ -242,7 +235,7 @@ revisionSchema.statics.getRevisionNumberByYearAndByUserType = function(callback)
             $group : {
                 _id : {year : {$year: "$date"}},
                 regular: {
-                    $sum:{$cond: [{ $eq:[ "$usertype", "registered" ]},1,0] }
+                    $sum:{$cond: [{ $eq:[ "$usertype", "regular" ]},1,0] }
                 },
                 anonymous: {
                     "$sum":{"$cond": [{ "$eq":[ "$usertype", "anonymous" ]},1,0] }
@@ -484,76 +477,80 @@ function readTextAndUpdateUsertypeForRevison(file, type){
     })
 }
 
-readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/bots.txt", "bot")
-readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/administrators.txt", "admin")
+// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
+// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
 
-revisions.updateMany(
-    {anon:{$exists:true}},
-    { $set:{"usertype":"anonymous"}},
-    function(err){
-      if(err){
-        console.error(err)
-      }
-    })
-
-revisions.updateMany(
-    { usertype:{$exists:false}},
-    { $set:{"usertype":"regular"}},
-    function(err){
-      if(err){
-        console.error(err)
-      }
-    })
-
-revisions.updateMany(
-    {},
-    [
-    {
-        $set:
-        {
-            "date":
-            {
-                $dateFromString :{ dateString: "$timestamp"}
-            }
-        }
-    }
-    // {
-    //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
-    // }
-    ],
-    function(err){
-        if(err){
-            console.error(err)
-        }
-    }
-)
-
+// revisions.updateMany(
+//     {anon:{$exists:true}},
+//     { $set:{"usertype":"anonymous"}},
+//     function(err){
+//       if(err){
+//         console.error(err)
+//       }
+//     })
+//
+// revisions.updateMany(
+//     { usertype:{$exists:false}},
+//     { $set:{"usertype":"regular"}},
+//     function(err){
+//       if(err){
+//         console.error(err)
+//       }
+//     })
+//
+// revisions.updateMany(
+//     {},
+//     [
+//     {
+//         $set:
+//         {
+//             "date":
+//             {
+//                 $dateFromString :{ dateString: "$timestamp"}
+//             }
+//         }
+//     }
+//     // {
+//     //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
+//     // }
+//     ],
+//     function(err){
+//         if(err){
+//             console.error(err)
+//         }
+//     }
+// )
+//
 
 
 module.exports = {user,revisions};
-//***Test***
-var test = db.connection;
-test.on('error',console.error.bind(console,'connection error: '));
-test.once('open', function(){
-    var input = {
-        'email': "test00@1234.com",
-        'firstname': "Test",
-        'lastname': "Test",
-        'question': "Test Question",
-        'answer':"Test Answer",
-        'pwd': "123456"
-        }
-    
-    var reset = {
-        'email': "test00@1234.com",
-        'firstname': "Test",
-        'lastname': "Test",
-        'question':"Test Question",
-        'answer': "Test Answer",
-        'old_pwd': "111111",
-        'new_pwd':"666666"
-    }
-    //user.signUp(input);
-    user.signIn(input);
-    user.resetPWD(reset)
-})
+
+// //***Test***
+// // Commented for release version
+// var test = db.connection;
+// test.on('error',console.error.bind(console,'connection error: '));
+// test.once('open', function(){
+//     var input = {
+//         'email': "test00@1234.com",
+//         'firstname': "Test",
+//         'lastname': "Test",
+//         'question': "Test Question",
+//         'answer':"Test Answer",
+//         'pwd': "123456"
+//         }
+//
+//     var reset = {
+//         'email': "test00@1234.com",
+//         'firstname': "Test",
+//         'lastname': "Test",
+//         'question':"Test Question",
+//         'answer': "Test Answer",
+//         'old_pwd': "111111",
+//         'new_pwd':"666666"
+//     }
+//     //user.signUp(input);
+//     user.signIn(input);
+//     user.resetPWD(reset)
+// })
+var res = revisions.getRevisionNumberByUserType()
+console.log(res)

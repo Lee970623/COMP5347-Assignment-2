@@ -10,6 +10,7 @@ function showLoginPage(req, res) {
     res.render("index.ejs");
 }
 
+// TODO: deprecated function
 function resetPwd(req, res) {
     res.render("reset.ejs");
 }
@@ -18,7 +19,8 @@ function resetPwd(req, res) {
 function validateResetPwd(req, res) {
     var resetStat = false
     var reqdata = req.body;
-    var md5 = crypto.createHash('md5');
+    var md5_1 = crypto.createHash('md5');
+    var md5_2 = crypto.createHash('md5');
 
     console.log("[reset pwd]" + JSON.stringify(reqdata))
 
@@ -26,14 +28,23 @@ function validateResetPwd(req, res) {
         email: reqdata["email"],
         question: reqdata["question"],
         answer: reqdata["answer"],
-        old_pwd: md5.update(reqdata["old_pwd"], 'utf8').digest('hex'),
-        new_pwd: md5.update(reqdata["new_pwd"], 'utf8').digest('hex')
+        old_pwd: md5_1.update(reqdata["old_pwd"], 'utf8').digest('hex'),
+        new_pwd: md5_2.update(reqdata["new_pwd"], 'utf8').digest('hex')
     }
 
-    // TODO: Check email and old_pwd, if correct, update DB and execute the code below.
-    resetStat = true;
-    req.session.loginStatus = false;
-    res.send({resetStatus: resetStat})
+    // TODO: DB query does not return a valid result
+    const promise = new Promise((userdata, reject)=>{
+        return model.user.resetPWD(userdata)
+    })
+    promise.then(function (result) {
+        console.log("controller recieved: " + JSON.stringify(result));
+        // console.log("recieved " + JSON.stringify(result))
+        resetStat = true;
+        req.session.loginStatus = false;
+        res.send({resetStatus: resetStat})
+    })
+
+
 }
 
 // User sign-in.
@@ -50,7 +61,7 @@ function signIn(req, res) {
     }
 
     // Send query to DB
-    model.signIn(userdata).then(function (re){
+    model.user.signIn(userdata).then(function (re){
         if (re.length > 0){
             loginstat = true;
             req.session.loginStatus = loginstat;
@@ -85,7 +96,7 @@ function signUp(req, res) {
     }
 
     // Send query to DB
-    model.signUp(userdata).then(function (){
+    model.user.signUp(userdata).then(function (){
         regStat = true;
         req.session.loginStatus = regStat;
 

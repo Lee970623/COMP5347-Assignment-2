@@ -7,53 +7,54 @@ var request = require('request')
 function viewOverall(req, res){
     let reqdata = req.body;
 
-    var querydata = {
-        "topnum": reqdata["topnum"]
-    }
-
-    // TODO: multiple query request
     var returns = {
         "top_revision": {},
         "top_edit": {},
         "top_history": {}
     };
 
+    var limit = parseInt(reqdata.topnum); // TODO: parameter 'limit' -> variable 'limit'
+    model.revisions.findArticlesAndRevisionNumber(-1, 3).then((result)=>{
+        console.log("top revisions")
+        console.log(result)
+        returns.top_revision.highest = result
+    });
+    model.revisions.findArticlesAndRevisionNumber(1, 3).then((result)=>{
+        console.log("top revisions")
+        console.log(result)
+        returns.top_revision.lowest = result
+    });
+
+    model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(-1, 3).then((result)=>{
+        returns.top_edit.largest = result
+    });
+    model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(1, 3).then((result)=>{
+        returns.top_edit.smallest = result
+    });
+    model.revisions.findArticlesWithHistoryAndDuration(-1, 3).then((result)=>{
+        returns.top_history.longest = result
+    })
+    model.revisions.findArticlesWithHistoryAndDuration(1, 3).then((result)=>{
+        returns.top_history.shortest = result
+    })
+
     res.send(returns)
 }
 
 // Send query to DB and get the distribution of users.
 function viewDistribution(req, res){
-    let reqdata = req.body;
-
-    var querydata = {
-        "usertype": "",
-    }
-
-    // TODO: db query
-    var distribution_usertype = {
-        "admin": 0,
-        "bot": 0,
-        "anonymous": 0,
-        "registered": 0
-    }
-
-    var distribution_year = [
-        {
-            "year": "2001",
-            "admin": 0,
-            "bot": 0,
-            "anonymous": 0,
-            "registered": 0
-        },
-        {
-            // TODO: generate json object from query result.
-        }
-    ]
-
     var returns = {
-        "by_usertype": distribution_usertype,
-        "by_year": distribution_year
+        "by_usertype": [],
+        "by_year": []
     }
+
+    model.revisions.getRevisionNumberByUserType().then((result)=>{
+        returns.by_usertype = result
+    });
+    model.revisions.getRevisionNumberByYearAndByUserType().then((result)=>{
+        returns.by_year = result
+    });
+
     res.send(returns)
 }
 
@@ -86,6 +87,7 @@ function getArticleInfo(req, res){
 function updateArticle(req, res){
     let reqdata = req.body;
     const wiki_url = "https://en.wikipedia.org/w/api.php";
+    
     // // Test case
     // var url = "https://en.wikipedia.org/w/api.php" +
     //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
@@ -123,9 +125,8 @@ function updateArticle(req, res){
                     var temp_rev = {
                         "title": reqdata.article,
                         "timestamp": single_rev.timestamp,
-                        "revid": single_rev.revid,
                         "user": single_rev.user,
-                        "userid": single_rev.userid,
+                        "usertype": "regular"
                     }
                     updated_list.push(temp_rev)
                 }

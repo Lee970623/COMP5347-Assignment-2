@@ -18,7 +18,7 @@ function viewAnalytics() {
             fillTableHistory(res.top_history, num);
         },
         error: function (xhr) {
-            M.toast({html: "Error: " + xhr.status + " " + xhr.statusText})
+            M.toast({html: "Error in viewAnalytics: " + xhr.status + " " + xhr.statusText})
         }
     });
 }
@@ -29,10 +29,10 @@ function fillTableRevision(res, num) {
     var table_end = "</tbody></table>"
     var table_row = ""
 
-    var highest_articles = res.highest["articles"];
-    var highest_revisions = res.highest["revisions"];
-    var lowest_articles = res.lowest["articles"];
-    var lowest_revisions = res.lowest["revisions"];
+    var highest_articles = res.highest["_id"];
+    var highest_revisions = res.highest["count"];
+    var lowest_articles = res.lowest["_id"];
+    var lowest_revisions = res.lowest["count"];
 
     // Build HTML elements and append to the page.
     for (var i=0; i < num; i++){
@@ -55,10 +55,10 @@ function fillTableEdit(res, num) {
     var table_end = "</tbody></table>"
     var table_row = ""
 
-    var largest_articles = res.largest["articles"];
-    var largest_edits = res.largest["edits"];
-    var smallest_articles = res.smallest["articles"];
-    var smallest_edits = res.smallest["edits"];
+    var largest_articles = res.largest["_id"];
+    var largest_edits = res.largest["count"];
+    var smallest_articles = res.smallest["_id"];
+    var smallest_edits = res.smallest["count"];
 
     // Build HTML elements and append to the page.
     for (var i=0; i < num; i++){
@@ -81,10 +81,10 @@ function fillTableHistory(res, num) {
     var table_end = "</tbody></table>"
     var table_row = ""
 
-    var longest_articles = res.longest["articles"];
-    var longest_history = res.longest["history"];
-    var shortest_articles = res.shortest["articles"];
-    var shortest_history = res.shortest["history"];
+    var longest_articles = res.longest["_id"];
+    var longest_history = res.longest["daysSinceCreatedTime"];
+    var shortest_articles = res.shortest["_id"];
+    var shortest_history = res.shortest["daysSinceCreatedTime"];
 
     // Build HTML elements and append to the page.
     for (var i=0; i < num; i++){
@@ -101,4 +101,19 @@ function fillTableHistory(res, num) {
     $("#shortestAge tbody").append(table_head + table_row + table_end)
 }
 
-// TODO: summary on charts
+// Get data from DB and display as charts.
+function chartSummary() {
+    $.ajax({
+        type: "GET",
+        url: "/analytic/view_charts",
+        dataType: "JSON",
+        success: function (res) {
+            //TODO: fill charts
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in chartSummary: " + xhr.status + " " + xhr.statusText})
+        }
+    }).done(function () {
+        //TODO: operation goes here
+    })
+}
