@@ -67,14 +67,14 @@ userSchema.statics.resetPWD = function(resetData){
     "answerForSecurityQuestion" : resetData.answer, 
     "password" : resetData.old_pwd
     }
-    console.log(query);
     var update = {
         $set:{"password": resetData.new_pwd}
     }
     var options = {
-        "new": true,
-        "rawResult":true
+        new: true,
+        rawResult: true
     }
+
     return this.findOneAndUpdate(
         query,
         update,
@@ -82,6 +82,7 @@ userSchema.statics.resetPWD = function(resetData){
         function(err, doc){
             if(err){
                 console.log("FindOneAndUpdat: " + err);
+
             }
         }
     )
@@ -306,12 +307,14 @@ revisionSchema.statics.isArticleUpToDate  = function(title,callback){
             $limit: 1
         },
         {
+
             $project : {mostRecent:"$date"}
                 //{
                 // $trunc:
                 //         {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
                 //     }
                 //}
+
         }
     ]
     return this.aggregate(pipeline).exec(callback);
@@ -576,31 +579,47 @@ revisions.updateMany(
 )
 
 
+// revisions.updateMany(
+//     {anon:{$exists:true}},
+//     { $set:{"usertype":"anonymous"}},
+//     function(err){
+//       if(err){
+//         console.error(err)
+//       }
+//     })
+//
+// revisions.updateMany(
+//     { usertype:{$exists:false}},
+//     { $set:{"usertype":"regular"}},
+//     function(err){
+//       if(err){
+//         console.error(err)
+//       }
+//     })
+//
+// revisions.updateMany(
+//     {},
+//     [
+//     {
+//         $set:
+//         {
+//             "date":
+//             {
+//                 $dateFromString :{ dateString: "$timestamp"}
+//             }
+//         }
+//     }
+//     // {
+//     //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
+//     // }
+//     ],
+//     function(err){
+//         if(err){
+//             console.error(err)
+//         }
+//     }
+// )
+//
+
 
 module.exports = {user,revisions};
-//***Test***
-// var test = db.connection;
-// test.on('error',console.error.bind(console,'connection error: '));
-// test.once('open', function(){
-//     var input = {
-//         'email': "test00@1234.com",
-//         'firstname': "Test",
-//         'lastname': "Test",
-//         'question': "Test Question",
-//         'answer':"Test Answer",
-//         'pwd': "123456"
-//         }
-    
-//     var reset = {
-//         'email': "test00@1234.com",
-//         'firstname': "Test",
-//         'lastname': "Test",
-//         'question':"Test Question",
-//         'answer': "Test Answer",
-//         'old_pwd': "111111",
-//         'new_pwd':"666666"
-//     }
-//     //user.signUp(input);
-//     user.signIn(input);
-//     user.resetPWD(reset)
-// })

@@ -4,57 +4,53 @@ var request = require('request')
 /*-----------------------------------
     Overview analytics
 ------------------------------------*/
-function viewOverall(req, res){
-    let reqdata = req.body;
+async function viewOverall(req, res){
+    let reqdata = req.query;
 
-    var querydata = {
-        "topnum": reqdata["topnum"]
-    }
-
-    // TODO: multiple query request
     var returns = {
         "top_revision": {},
         "top_edit": {},
         "top_history": {}
     };
 
-    res.send(returns)
+    var limit = parseInt(reqdata.topnum); // TODO: parameter 'limit' -> variable 'limit'
+    await model.revisions.findArticlesAndRevisionNumber(-1, limit).then((result)=>{
+        returns.top_revision.highest = result
+    });
+    await model.revisions.findArticlesAndRevisionNumber(1, limit).then((result)=>{
+        returns.top_revision.lowest = result
+    });
+    await model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(-1, limit).then((result)=>{
+        returns.top_edit.largest = result
+    });
+    await model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(1, limit).then((result)=>{
+        returns.top_edit.smallest = result
+    });
+    await model.revisions.findArticlesWithHistoryAndDuration(-1, limit).then((result)=>{
+        returns.top_history.longest = result
+    })
+    await model.revisions.findArticlesWithHistoryAndDuration(1, limit).then((result)=>{
+        returns.top_history.shortest = result
+    })
+
+    await res.send(returns)
 }
 
 // Send query to DB and get the distribution of users.
-function viewDistribution(req, res){
-    let reqdata = req.body;
-
-    var querydata = {
-        "usertype": "",
-    }
-
-    // TODO: db query
-    var distribution_usertype = {
-        "admin": 0,
-        "bot": 0,
-        "anonymous": 0,
-        "registered": 0
-    }
-
-    var distribution_year = [
-        {
-            "year": "2001",
-            "admin": 0,
-            "bot": 0,
-            "anonymous": 0,
-            "registered": 0
-        },
-        {
-            // TODO: generate json object from query result.
-        }
-    ]
-
+async function viewDistribution(req, res){
     var returns = {
-        "by_usertype": distribution_usertype,
-        "by_year": distribution_year
+        "by_usertype": [],
+        "by_year": []
     }
-    res.send(returns)
+
+    await model.revisions.getRevisionNumberByUserType().then((result)=>{
+        returns.by_usertype = result
+    });
+    await model.revisions.getRevisionNumberByYearAndByUserType().then((result)=>{
+        returns.by_year = result
+    });
+
+    await res.send(returns)
 }
 
 /*-----------------------------------
@@ -62,41 +58,35 @@ function viewDistribution(req, res){
 ------------------------------------*/
 
 function getArticleInfo(req, res){
-    let reqdata = req.body;
+    let reqdata = req.query;
     const DAY_MILISEC = 1000 * 60 * 60 * 24;
-    var returns = {
-        "history": 0,
-        "is_uptodate": false,
-        "revisions": 0
-    }
 
-    // TODO: send query
-    var current_time = new Date();
-    var last_rev_time = new Date(result[0].time);
-    if ((current_time - last_rev_time) / DAY_MILISEC > 1){
-        returns.is_uptodate = false;
-    } else{
-        returns.is_uptodate = true;
-    }
-
-    res.send(returns);
+    model.revisions.isArticleUpToDate(reqdata.article).then((result)=>{
+        var current_time = new Date();
+        var last_rev_time = new Date(result[0].timestamp);
+        if ((current_time - last_rev_time) / DAY_MILISEC > 1){
+            result.is_uptodate = false;
+        } else{
+            result.is_uptodate = true;
+        }
+        console.log("[query result]: "+JSON.stringify(result))
+        return result
+    }).then((result)=>{
+        res.send(result)
+    })
 }
 
 // Update article`s revisions by calling Wikipedia`s API.
 function updateArticle(req, res){
-    let reqdata = req.body;
+    let reqdata = req.query;
     const wiki_url = "https://en.wikipedia.org/w/api.php";
+
     // // Test case
     // var url = "https://en.wikipedia.org/w/api.php" +
     //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
-    // TODO: send query
-
-    // query result from model
-    var result = {}
-
     var parameter = "action=query&format=json&prop=revisions&"+
-        `titles=${reqdata.article}&rvstart=${result.last_date.toISOString()}`+
+        `titles=${reqdata.title}&rvstart=${reqdata.timestamp}`+
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
@@ -123,9 +113,8 @@ function updateArticle(req, res){
                     var temp_rev = {
                         "title": reqdata.article,
                         "timestamp": single_rev.timestamp,
-                        "revid": single_rev.revid,
                         "user": single_rev.user,
-                        "userid": single_rev.userid,
+                        "usertype": "regular"
                     }
                     updated_list.push(temp_rev)
                 }
@@ -140,7 +129,7 @@ function updateArticle(req, res){
 
 // Show the summary information for the selected article
 function viewArticleSummary(req, res) {
-    var reqdata = req.body;
+    var reqdata = req.query;
     var returns = {
         "revision_num": 0,
         "top5_user": [],
@@ -155,7 +144,7 @@ function viewArticleSummary(req, res) {
 
 // Call Reddit API to get top 3 rated posts
 function getRedditPosts(req, res) {
-    var reqdata = req.body;
+    var reqdata = req.query;
     var url = "https://www.reddit.com/r/news/search.json?q="
         + reqdata.title
         + "&restrict_sr=on&sort=top&t=all&limit=3"
@@ -187,7 +176,7 @@ function getRedditPosts(req, res) {
 ------------------------------------*/
 
 function viewArticleChangedByAuthor(req, res){
-    var reqdata = req.body;
+    var reqdata = req.query;
     var returns = [
         {
             "title": "",

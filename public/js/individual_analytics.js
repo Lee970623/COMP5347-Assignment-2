@@ -4,6 +4,15 @@ $(document).ready(function () {
     $("#filter").click(filterSummaryAndChart); //TODO: to be confirmed
 })
 
+//TODO: dropdown list
+function updateDropdown() {
+    var revision_num = res.revisions;
+
+    //TODO: modify this
+    $("#revision_num").html(revision_num) // Set the number of revisions
+
+}
+
 // Check if the selected article is up-to-date
 function checkArticle() {
     var formdata = {
@@ -16,13 +25,8 @@ function checkArticle() {
         data: formdata,
         dataType: 'JSON',
         success: function (res) {
-            var revision_num = res.revisions;
-
-            //TODO: modify this
-            $("#revision_num").html(revision_num) // Set the number of revisions
-
             if(! res.is_uptodate){
-                updateArticle(formdata);
+                updateArticle(res);
             } else{
                 M.toast({html: "Article is up-to-date."})
             }
