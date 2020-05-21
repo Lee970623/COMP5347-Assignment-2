@@ -82,18 +82,9 @@ userSchema.statics.resetPWD = function(resetData){
         function(err, doc){
             if(err){
                 console.log("FindOneAndUpdat: " + err);
-            }else{
-                console.log(doc);
             }
-            console.log(doc);
         }
     )
-    // return this.updateOne(query,{$set:{"password":resetData.new_pwd}},function(err,res){
-    //     if(err){
-    //         console.log("UpdateOne: " + err);
-    //     }
-    //     console.log(res);
-    // });
 }
 
 var user = db.model('User',userSchema,'users');
@@ -157,7 +148,10 @@ var revisionSchema = new db.Schema(
     }
 );
 
-//Overall Analytics
+/*-----------------------------------
+         Overview Analytics
+------------------------------------*/
+
 // The top two articles with the highest number of revisions and their number of revisions.
 // The top two articles with the lowest number of revisions and their number of revisions.
 revisionSchema.statics.findArticlesAndRevisionNumber = function(direction = 1, limits = 2, callback){
@@ -182,7 +176,7 @@ revisionSchema.statics.findArticlesAndRevisionNumber = function(direction = 1, l
 revisionSchema.statics.findArticlesAndRevisionNumberFromRegisteredUsers = function(direction = 1, limits = 2, callback){
     pipeline = [
         {
-            $match:{usertype:"registered"}
+            $match:{usertype:{$not:{$eq:"bot"}}}
         },
         {
             $group:{
@@ -242,18 +236,21 @@ revisionSchema.statics.getRevisionNumberByYearAndByUserType = function(callback)
             $group : {
                 _id : {year : {$year: "$date"}},
                 regular: {
-                    $sum:{$cond: [{ $eq:[ "$usertype", "registered" ]},1,0] }
+                    $sum:{$cond: [{ $eq:[ "$usertype", "regular" ]},1,0] }
                 },
                 anonymous: {
-                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "anonymous" ]},1,0] }
+                    $sum:{$cond: [{ $eq:[ "$usertype", "anonymous" ]},1,0] }
                 },
                 admin: {
-                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "admin" ]},1,0] }
+                    $sum:{$cond: [{ "$eq":[ "$usertype", "admin" ]},1,0] }
                 },
                 bot: {
-                    "$sum":{"$cond": [{ "$eq":[ "$usertype", "bot" ]},1,0] }
+                    $sum:{$cond: [{ "$eq":[ "$usertype", "bot" ]},1,0] }
                 }
             }
+        },
+        {
+            $sort: {_id: 1}
         }
     ]
     return this.aggregate(pipeline).exec(callback);
@@ -274,7 +271,9 @@ revisionSchema.statics.getRevisionNumberByUserType = function(callback){
 }
 
 
-//Individual Article Analytics
+/*-----------------------------------
+    Individual article analytics
+------------------------------------*/
 //Get all available articles title in the data set
 //also show total number of revisions, next to the article title in the drop-down list
 revisionSchema.statics.getAllAvaliableArticlesTitle = function(callback){
@@ -294,8 +293,7 @@ revisionSchema.statics.getAllAvaliableArticlesTitle = function(callback){
 
 //Once an end user selects an article, your application needs to check 
 //if the history of that article in the database is up to date. 
-//If it return the mostRecent is less than 24, it's up to date,
-//otherwise no.
+//Return the most recent date, i.e. last modified date in the database
 revisionSchema.statics.isArticleUpToDate  = function(title,callback){
     pipeline = [
         {
@@ -308,27 +306,52 @@ revisionSchema.statics.isArticleUpToDate  = function(title,callback){
             $limit: 1
         },
         {
-            $project : {mostRecent:{
-                $trunc:
-                        {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
-                    }
-                }
+            $project : {mostRecent:"$date"}
+                //{
+                // $trunc:
+                //         {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
+                //     }
+                //}
         }
     ]
     return this.aggregate(pipeline).exec(callback);
 }
 
-revisionSchema.statics.getTheLastestArticle = function(title, lastdate, callback){
-
+//This is for inserting the new revisions accquired from querrying wiki-API
+//These revisions will have the same title
+revisionSchema.statics.insertRevisions = function(title,revisionList, callback){
+    //Ordered is false, therefore it will try to insert any records instead of failling the whole process when encountering an error
+    options = {"ordered": false}
+    this.insertMany(revisionList,options,callback)
+    this.updateMany(
+        {
+            "title":title,
+            "date":{$exists:false}
+        },
+        {$set:
+            {
+                "date":
+                {
+                    $dateFromString :{ dateString: "$timestamp"}
+                }
+            }
+        }
+        )
 }
 
+/*-----------------------------------------------------------*/
+//For the selected article, display the following summary information:
+
+//The title (see above .getAllAvaliableArticlesTitle())
+
+//The total number of revisions (see above .getAllAvaliableArticlesTitle())
 
 //The top 5 regular users ranked by total revision numbers on this article, 
 //and the respective revision numbers
 revisionSchema.statics.topFiveUsersOfOneArticleRankedByRevisionNumbers = function(title, callback){
     pipeline = [
         {
-            $match : {"$title": title, "usertype": "regular"}
+            $match : {"title": title, "usertype": "regular"}
         },
         {
             $group : {
@@ -406,6 +429,27 @@ revisionSchema.statics.getUsertypeDistributionOfOneArticle = function(title,call
 //A bar chart of revision number distributed by year made by one of the top 5 regular users 
 //for this article. 
 //For this chart, you need provide a way to select a user from the top 5 list.
+revisionSchema.statics.getTopFiveRegularUsers = function(title, callback){
+    var pipeline = [
+        {
+            $match:{"title":title}
+        },
+        {
+            $group: {
+                _id:{user:"$user"},
+                count:{$sum: 1}
+            }
+        },
+        {
+            $sort: -1
+        },
+        {
+            $limit: 5
+        }
+    ]
+    return this.aggregate(pipeline).exec(callback)
+}
+
 revisionSchema.statics.getRevisionDistributionByYearMadeFromOneUserToOneArticle = function(title, user, callback){
     var pipeline = [
         {
@@ -424,7 +468,9 @@ revisionSchema.statics.getRevisionDistributionByYearMadeFromOneUserToOneArticle 
     return this.aggregate(pipeline).exec(callback)
 }
 
-//Author Analysis
+/*-----------------------------------
+          Author analytics
+------------------------------------*/
 //Return all authors including admin, bot and regular users
 revisionSchema.statics.getAllAuthors = function(callback){
     pipeline = [
@@ -439,7 +485,7 @@ revisionSchema.statics.getAllAuthors = function(callback){
     ]
     return this.aggregate(callback)
 }
-//After select an author, return the article made by the author with the counts and timestamp
+//After selecting an author, return the articles made by the author with the revisions counts and timestamp
 revisionSchema.statics.getAllArticlesAndNumberMadeByAuthor = function(author, callback){
     var pipeline = [
         {
@@ -484,8 +530,9 @@ function readTextAndUpdateUsertypeForRevison(file, type){
     })
 }
 
-readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/bots.txt", "bot")
-readTextAndUpdateUsertypeForRevison("../../public/data/Dataset_22_March_2020/administrators.txt", "admin")
+//Use abslout path here
+readTextAndUpdateUsertypeForRevison("/Users/limou/COMP5347_Assignment2/COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
+readTextAndUpdateUsertypeForRevison("/Users/limou/COMP5347_Assignment2/COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
 
 revisions.updateMany(
     {anon:{$exists:true}},
@@ -532,28 +579,28 @@ revisions.updateMany(
 
 module.exports = {user,revisions};
 //***Test***
-var test = db.connection;
-test.on('error',console.error.bind(console,'connection error: '));
-test.once('open', function(){
-    var input = {
-        'email': "test00@1234.com",
-        'firstname': "Test",
-        'lastname': "Test",
-        'question': "Test Question",
-        'answer':"Test Answer",
-        'pwd': "123456"
-        }
+// var test = db.connection;
+// test.on('error',console.error.bind(console,'connection error: '));
+// test.once('open', function(){
+//     var input = {
+//         'email': "test00@1234.com",
+//         'firstname': "Test",
+//         'lastname': "Test",
+//         'question': "Test Question",
+//         'answer':"Test Answer",
+//         'pwd': "123456"
+//         }
     
-    var reset = {
-        'email': "test00@1234.com",
-        'firstname': "Test",
-        'lastname': "Test",
-        'question':"Test Question",
-        'answer': "Test Answer",
-        'old_pwd': "111111",
-        'new_pwd':"666666"
-    }
-    //user.signUp(input);
-    user.signIn(input);
-    user.resetPWD(reset)
-})
+//     var reset = {
+//         'email': "test00@1234.com",
+//         'firstname': "Test",
+//         'lastname': "Test",
+//         'question':"Test Question",
+//         'answer': "Test Answer",
+//         'old_pwd': "111111",
+//         'new_pwd':"666666"
+//     }
+//     //user.signUp(input);
+//     user.signIn(input);
+//     user.resetPWD(reset)
+// })
