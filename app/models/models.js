@@ -301,11 +301,10 @@ revisionSchema.statics.isArticleUpToDate  = function(title,callback){
             $limit: 1
         },
         {
-            $project : {mostRecent:{
-                $trunc:
-                        {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
-                    }
-                }
+            $project : {
+                title: "$title",
+                timestamp: "$timestamp"
+            }
         }
     ]
     return this.aggregate(pipeline).exec(callback);
@@ -552,5 +551,3 @@ module.exports = {user,revisions};
 //     user.signIn(input);
 //     user.resetPWD(reset)
 // })
-var res = revisions.getRevisionNumberByUserType()
-console.log(res)
