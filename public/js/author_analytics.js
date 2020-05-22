@@ -26,10 +26,10 @@ function searchAuthor() {
         var collapsible_head = "<ul class='collapsible'>"
 
         for (each of articles){
-            var collapsible_body = `<li><div class="collapsible-header">${each.title}</div>`
+            var collapsible_body = `<li><div class="collapsible-header">Title: ${each._id.title}&nbsp;Revisions: ${each.count}</div>`
 
             var time_list = []
-            for (t of each.timestamps){
+            for (t of each.timestamp){
                 time_list.push(`<p>t</p>`)
             }
             var ts = time_list.join('');
@@ -44,7 +44,18 @@ function searchAuthor() {
 }
 
 function updateAutoComplete(instance) {
-    instance.updateData({
-        //TODO: author list
+    var author_list = []
+    $.ajax({
+        type: 'GET',
+        url: '/analytics/get_all_author',
+        dataType: 'JSON',
+        success: function (res) {
+            author_list = res
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in updateAutoComplete: " + xhr.status + " " + xhr.statusText})
+        }
+    }).done(function () {
+        instance.updateData({author_list})
     })
 }

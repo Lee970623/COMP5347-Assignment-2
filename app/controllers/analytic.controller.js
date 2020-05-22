@@ -4,7 +4,31 @@ var request = require('request')
 /*-----------------------------------
     Overview analytics
 ------------------------------------*/
-async function viewOverall(req, res){
+async function DBQueryExtremeRevisions(limit, returns) {
+    let _ = await Promise.all([
+        model.revisions.findArticlesAndRevisionNumber(-1, limit).then((result) => {
+            returns.top_revision.highest = result
+        }),
+        model.revisions.findArticlesAndRevisionNumber(1, limit).then((result) => {
+            returns.top_revision.lowest = result
+        }),
+        model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(-1, limit).then((result) => {
+            returns.top_edit.largest = result
+        }),
+        model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(1, limit).then((result) => {
+            returns.top_edit.smallest = result
+        }),
+        model.revisions.findArticlesWithHistoryAndDuration(-1, limit).then((result) => {
+            returns.top_history.longest = result
+        }),
+        model.revisions.findArticlesWithHistoryAndDuration(1, limit).then((result) => {
+            returns.top_history.shortest = result
+        })
+    ])
+    return returns
+}
+
+function viewOverall(req, res) {
     let reqdata = req.query;
 
     var returns = {
@@ -13,71 +37,65 @@ async function viewOverall(req, res){
         "top_history": {}
     };
 
-    var limit = parseInt(reqdata.topnum); // TODO: parameter 'limit' -> variable 'limit'
-    await model.revisions.findArticlesAndRevisionNumber(-1, limit).then((result)=>{
-        returns.top_revision.highest = result
-    });
-    await model.revisions.findArticlesAndRevisionNumber(1, limit).then((result)=>{
-        returns.top_revision.lowest = result
-    });
-    await model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(-1, limit).then((result)=>{
-        returns.top_edit.largest = result
-    });
-    await model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(1, limit).then((result)=>{
-        returns.top_edit.smallest = result
-    });
-    await model.revisions.findArticlesWithHistoryAndDuration(-1, limit).then((result)=>{
-        returns.top_history.longest = result
+    var limit = parseInt(reqdata.topnum);
+    DBQueryExtremeRevisions(limit, returns).then((result) => {
+        res.send(result)
     })
-    await model.revisions.findArticlesWithHistoryAndDuration(1, limit).then((result)=>{
-        returns.top_history.shortest = result
-    })
+}
 
-    await res.send(returns)
+async function DBQueryDistribution(returns) {
+    let _ = await Promise.all([
+        model.revisions.getRevisionNumberByUserType().then((result) => {
+            returns.by_usertype = result
+        }),
+        model.revisions.getRevisionNumberByYearAndByUserType().then((result) => {
+            returns.by_year = result
+        })
+    ])
+    return returns
 }
 
 // Send query to DB and get the distribution of users.
-async function viewDistribution(req, res){
+function viewDistribution(req, res) {
     var returns = {
         "by_usertype": [],
         "by_year": []
     }
-
-    await model.revisions.getRevisionNumberByUserType().then((result)=>{
-        returns.by_usertype = result
-    });
-    await model.revisions.getRevisionNumberByYearAndByUserType().then((result)=>{
-        returns.by_year = result
-    });
-
-    await res.send(returns)
+    DBQueryDistribution(returns).then((result)=>{res.send(result)})
 }
 
 /*-----------------------------------
     Individual article analytics
 ------------------------------------*/
+// Get all articles
+function getAllArticlesAndRevisions(req, res) {
+    model.revisions.getAllAvaliableArticlesTitle().then((result)=>{
+        res.send(result)
+    })
+}
 
-function getArticleInfo(req, res){
+// Get information for the selected article.
+function getArticleInfo(req, res) {
     let reqdata = req.query;
     const DAY_MILISEC = 1000 * 60 * 60 * 24;
 
-    model.revisions.isArticleUpToDate(reqdata.article).then((result)=>{
+    model.revisions.isArticleUpToDate(reqdata.article).then((result) => {
         var current_time = new Date();
         var last_rev_time = new Date(result[0].timestamp);
-        if ((current_time - last_rev_time) / DAY_MILISEC > 1){
+        if ((current_time - last_rev_time) / DAY_MILISEC > 1) {
             result.is_uptodate = false;
-        } else{
+        } else {
             result.is_uptodate = true;
         }
-        console.log("[query result]: "+JSON.stringify(result))
+        console.log("[query result]: " + JSON.stringify(result))
         return result
-    }).then((result)=>{
+    }).then((result) => {
         res.send(result)
     })
 }
 
 // Update article`s revisions by calling Wikipedia`s API.
-function updateArticle(req, res){
+async function updateArticle(req, res) {
     let reqdata = req.query;
     const wiki_url = "https://en.wikipedia.org/w/api.php";
 
@@ -85,21 +103,21 @@ function updateArticle(req, res){
     // var url = "https://en.wikipedia.org/w/api.php" +
     //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
-    var parameter = "action=query&format=json&prop=revisions&"+
-        `titles=${reqdata.title}&rvstart=${reqdata.timestamp}`+
+    var parameter = "action=query&format=json&prop=revisions&" +
+        `titles=${reqdata.title}&rvstart=${reqdata.timestamp}` +
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
-    request(url, function (error, response, data) {
-        if(error){
+    await request(url, function (error, response, data) {
+        if (error) {
             console.log(error)
-        }else if(response.statusCode != 200){
+        } else if (response.statusCode != 200) {
             console.log(response.statusCode)
-        }else {
+        } else {
             var pages = JSON.parse(data).query.pages
             var rev_list = pages[Object.keys(pages)[0]].revisions;
-            if (rev_list.length > 0){
-                for (let i=0; i< rev_list.length; i++){
+            if (rev_list.length > 0) {
+                for (let i = 0; i < rev_list.length; i++) {
                     var single_rev = rev_list[i]
                     var current_time = new Date();
                     var rev_time = new Date(single_rev.timestamp)
@@ -122,9 +140,26 @@ function updateArticle(req, res){
         }
     });
 
-    // TODO: call model to update revisions
+    // Update revisions in DB
+    await model.revisions.insertRevisions(reqdata.title, updated_list)
 
-    res.send({"updated_num": updated_list.length})
+    // Send updated length
+    await res.send({"updated_num": updated_list.length})
+}
+
+async function DBQuerySingleArticle(title, returns) {
+    let _ = await Promise.all([
+        model.revisions.getAllAvaliableArticlesTitle().then((result)=>{
+            var single = result.filter(function(p){
+                return p._id.title === title;
+            });
+            returns.revision_num = single[0].count
+        }),
+        model.revisions.topFiveUsersOfOneArticleRankedByRevisionNumbers(title).then((result) => {
+            returns.top5_user = result
+        })
+    ])
+    return returns
 }
 
 // Show the summary information for the selected article
@@ -132,14 +167,12 @@ function viewArticleSummary(req, res) {
     var reqdata = req.query;
     var returns = {
         "revision_num": 0,
-        "top5_user": [],
-        "top5_user_rev": []
+        "top5_user": []
     }
 
-    // TODO: db query
-    // TODO: regular users
-
-    res.send(returns)
+    DBQuerySingleArticle(reqdata.title, returns).then((result)=>{
+        res.send(returns)
+    })
 }
 
 // Call Reddit API to get top 3 rated posts
@@ -152,13 +185,13 @@ function getRedditPosts(req, res) {
     var returns = []
 
     request(url, function (error, response, data) {
-        if(error){
+        if (error) {
             console.log(error)
-        }else if(response.statusCode != 200){
+        } else if (response.statusCode != 200) {
             console.log(response.statusCode)
-        }else {
+        } else {
             var posts = JSON.parse(response.body).data.children
-            for (var s of posts){
+            for (var s of posts) {
                 var temp = {
                     "title": s.data.title,
                     "url": s.data.url
@@ -171,11 +204,47 @@ function getRedditPosts(req, res) {
     res.send(returns)
 }
 
+async function DBQueryIndividualDistribution(title, returns) {
+    let _ = await Promise.all([
+        model.revisions.getYearAndUsertypeDistributionOfOneArticle(title).then((result)=>{
+            returns.bar_year_and_usertype = result
+        }),
+        model.revisions.getUsertypeDistributionOfOneArticle(title).then((result)=>{
+            returns.pie_usertype = result
+        }),
+        model.revisions.getTopFiveRegularUsers(title).then((result)=>{
+            returns.bar_year_top5 = result
+        })
+    ])
+    return returns
+}
+
+// Get distribution for individual article
+function viewIndividualDistribution(req, res) {
+    var title = req.query.title
+    var returns = {
+        "bar_year_and_usertype": [],
+        "pie_usertype": [],
+        "bar_year_top5": []
+    }
+
+    DBQueryIndividualDistribution(title, returns).then((result)=>{
+        res.send(result)
+    })
+}
+
 /*-----------------------------------
           Author analytics
 ------------------------------------*/
+// Get all authors
+function getAllAuthors(req, res) {
+    model.revisions.getAllAuthors().then((result)=>{
+        res.send(result.slice(2,))
+    })
+}
 
-function viewArticleChangedByAuthor(req, res){
+// Get articles and revision numbers by the selected author.
+function viewArticleChangedByAuthor(req, res) {
     var reqdata = req.query;
     var returns = [
         {
@@ -185,24 +254,21 @@ function viewArticleChangedByAuthor(req, res){
         }
     ];
 
-    //TODO: db query
-    var result;
-
-    for (var ec of result){
-
-    }
-    //TODO: build returns with query results
-
-    res.send(returns)
+    model.revisions.getAllArticlesAndNumberMadeByAuthor(reqdata.author).then((result)=>{
+        res.send(result)
+    })
 }
 
 
 module.exports = {
     viewOverall,
     viewDistribution,
+    getAllArticlesAndRevisions,
     getArticleInfo,
     updateArticle,
     viewArticleSummary,
     getRedditPosts,
+    viewIndividualDistribution,
+    getAllAuthors,
     viewArticleChangedByAuthor
 };

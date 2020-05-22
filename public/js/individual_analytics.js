@@ -1,16 +1,32 @@
 $(document).ready(function () {
+    updateDropdown();
     $("select option:selected").click(checkArticle);
     $("#searchArticle").click(displaySummary);
-    $("#filter").click(filterSummaryAndChart); //TODO: to be confirmed
+    $("#filter").click(filterSummaryAndChart);
 })
 
-//TODO: dropdown list
+// Fill the dropdown list with articles and their revision numbers
 function updateDropdown() {
-    var revision_num = res.revisions;
+    var article_list = []
+    $.ajax({
+        type: 'GET',
+        url: '/analytic/get_all_articles',
+        dataType: 'JSON',
+        success: function (res) {
+            article_list = res
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in updateDropdown: " + xhr.status + " " + xhr.statusText})
+        }
+    }).done(function () {
+        for (s of article_list){
+            var title = s._id.title;
+            var rev_num = s.count;
 
-    //TODO: modify this
-    $("#revision_num").html(revision_num) // Set the number of revisions
+            //TODO: fill dropdown list
 
+        }
+    })
 }
 
 // Check if the selected article is up-to-date
@@ -87,8 +103,21 @@ function displaySummary() {
             M.toast({html: "Error in displaySummary: " + xhr.status + " " + xhr.statusText})
         }
     }).done(function () {
-        //TODO: render summary HTML
-        var table_element = ""
+        var table_element = "<table><thead><tr><th>Title</th><th>Total number of revisions</th></tr></thead><tbody>"
+        var table_body = `<tr><td>${formdata.title}</td><td>${summary.revision_num}</td></tr>`
+
+        $("#titleplace").empty();
+        $("#titleplace").append(table_element+table_body+"</tbody></table>");
+
+        var table_head = "<table><thead><tr><th>Top 5 users</th><th>Number of revisions</th></tr></thead><tbody>"
+        for (var s of summary.top5_user){
+            var table_temp = `<tr><td>${s._id.user}</td><td>${s.count}</td></tr>`
+            table_head += table_temp
+        }
+
+        //TODO: possible sequence error
+        $("#titleplace").empty();
+        $("#titleplace").append(table_head+"</tbody></table>")
 
     }).then(getRedditPosts(formdata))
 }
@@ -124,5 +153,19 @@ function getRedditPosts(formdata) {
 
 // Show charts for the selected article.
 function filterSummaryAndChart() {
-
+    var formdata = {"title": $("#selected_article").val()}
+    $.ajax({
+        method: 'GET',
+        url: '/analytic/get_individual_chart',
+        data: formdata,
+        dataType: 'JSON',
+        success: function (res) {
+            //TODO: fill variables
+        },
+        error: function (xhr) {
+            M.toast({html: "Error in filterSummaryAndChart: " + xhr.status + " " + xhr.statusText})
+        }
+    }).done(function () {
+        // TODO: fill charts
+    })
 }

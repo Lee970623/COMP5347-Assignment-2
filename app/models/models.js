@@ -307,14 +307,10 @@ revisionSchema.statics.isArticleUpToDate  = function(title,callback){
             $limit: 1
         },
         {
-
-            $project : {mostRecent:"$date"}
-                //{
-                // $trunc:
-                //         {$divide: [{$subtract:[new Date(), "$date"]}, 1000*60*60]} 
-                //     }
-                //}
-
+            $project : {
+                title: "$title",
+                timestamp: "$timestamp"
+            }
         }
     ]
     return this.aggregate(pipeline).exec(callback);
@@ -444,7 +440,7 @@ revisionSchema.statics.getTopFiveRegularUsers = function(title, callback){
             }
         },
         {
-            $sort: -1
+            $sort: {count: -1}
         },
         {
             $limit: 5
@@ -486,7 +482,7 @@ revisionSchema.statics.getAllAuthors = function(callback){
             $sort:{"_id":1}
         }
     ]
-    return this.aggregate(callback)
+    return this.aggregate(pipeline).exec(callback)
 }
 //After selecting an author, return the articles made by the author with the revisions counts and timestamp
 revisionSchema.statics.getAllArticlesAndNumberMadeByAuthor = function(author, callback){
@@ -498,7 +494,7 @@ revisionSchema.statics.getAllArticlesAndNumberMadeByAuthor = function(author, ca
             $group:{
                 _id:{user:"$user", title:"$title"},
                 count:{$sum:1},
-                timestamp: {$addToSet:"$date"}
+                timestamp: {$addToSet:"$timestamp"}
             }
         },
         {
@@ -533,52 +529,14 @@ function readTextAndUpdateUsertypeForRevison(file, type){
     })
 }
 
-//Use abslout path here
-readTextAndUpdateUsertypeForRevison("/Users/limou/COMP5347_Assignment2/COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
-readTextAndUpdateUsertypeForRevison("/Users/limou/COMP5347_Assignment2/COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
+// -----------------------------------------
+// -------Disabled for test purposes--------
+// -----------------------------------------
 
-revisions.updateMany(
-    {anon:{$exists:true}},
-    { $set:{"usertype":"anonymous"}},
-    function(err){
-      if(err){
-        console.error(err)
-      }
-    })
-
-revisions.updateMany(
-    { usertype:{$exists:false}},
-    { $set:{"usertype":"regular"}},
-    function(err){
-      if(err){
-        console.error(err)
-      }
-    })
-
-revisions.updateMany(
-    {},
-    [
-    {
-        $set:
-        {
-            "date":
-            {
-                $dateFromString :{ dateString: "$timestamp"}
-            }
-        }
-    }
-    // {
-    //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
-    // }
-    ],
-    function(err){
-        if(err){
-            console.error(err)
-        }
-    }
-)
-
-
+// // Use abslout path here
+// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
+// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
+//
 // revisions.updateMany(
 //     {anon:{$exists:true}},
 //     { $set:{"usertype":"anonymous"}},
@@ -620,6 +578,5 @@ revisions.updateMany(
 //     }
 // )
 //
-
 
 module.exports = {user,revisions};
