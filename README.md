@@ -24,3 +24,8 @@ Windows:
     for %%f in (*.json) do (
         "mongoimport.exe" --jsonArray --db Assignment --collection revision --file %%~nf.json
     )
+
+## Start DB
+start_db_server.bat
+## Import revisions
+import_revisions.bat
