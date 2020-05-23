@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var url = 'mongodb://localhost/db_wikilatic';
+var url = 'mongodb://localhost/Assignment';
 const options = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
