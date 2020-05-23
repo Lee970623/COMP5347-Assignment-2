@@ -137,7 +137,11 @@ var user = db.model('User', userSchema, 'users');
 var revisionSchema = new db.Schema({
     anon: Boolean,
     user: String,
-    timestamp: String,
+    timestamp: {
+        type: String,
+        unique: true,
+        required: true
+    },
     title: String,
     usertype: String,
     date: Date
@@ -306,20 +310,25 @@ revisionSchema.statics.isArticleUpToDate = function(title, callback) {
 
 //This is for inserting the new revisions accquired from querrying wiki-API
 //These revisions will have the same title
-revisionSchema.statics.insertRevisions = function(title, revisionList, callback) {
+revisionSchema.statics.insertRevisions = function(revisionList, callback) {
     //Ordered is false, therefore it will try to insert any records instead of failling the whole process when encountering an error
     options = { "ordered": false }
-    this.insertMany(revisionList, options, callback)
-    this.updateMany({
+    return this.insertMany(revisionList, options, callback)
+}
+
+revisionSchema.statics.updateNewRevisions = function(title){
+    return this.updateMany({
         "title": title,
         "date": { $exists: false }
-    }, {
+    }, 
+    {
         $set: {
             "date": {
                 $dateFromString: { dateString: "$timestamp" }
             }
         }
-    })
+    }
+    )
 }
 
 /*-----------------------------------------------------------*/
