@@ -11,17 +11,9 @@ function showLoginPage(req, res) {
 }
 
 // Black hole router
-function formSignIn(req, res) {
-}
+function formSignIn(req, res) {}
 
-function formSignUp(req, res) {
-}
-
-
-// TODO: deprecated function
-function resetPwd(req, res) {
-    res.render("reset.ejs");
-}
+function formSignUp(req, res) {}
 
 // Validation for reset password function.
 function validateResetPwd(req, res) {
@@ -41,15 +33,15 @@ function validateResetPwd(req, res) {
     }
 
     // TODO: DB query does not return a valid result
-    const promise = new Promise((userdata, reject)=>{
+    const promise = new Promise((userdata, reject) => {
         return model.user.resetPWD(userdata)
     })
-    promise.then(function (result) {
+    promise.then(function(result) {
         console.log("controller recieved: " + JSON.stringify(result));
         // console.log("recieved " + JSON.stringify(result))
         resetStat = true;
         req.session.loginStatus = false;
-        res.send({resetStatus: resetStat})
+        res.send({ resetStatus: resetStat })
     })
 
 
@@ -69,19 +61,19 @@ function signIn(req, res) {
     }
 
     // Send query to DB
-    model.user.signIn(userdata).then(function (re){
-        if (re.length > 0){
+    model.user.signIn(userdata).then(function(re) {
+        if (re.length > 0) {
             loginstat = true;
             req.session.loginStatus = loginstat;
 
             console.log("user login success: " + userdata.email)
-            res.send({loginStatus: loginstat})
-        }else{
+            res.send({ loginStatus: loginstat })
+        } else {
             console.log("user login failed: " + userdata.email)
         }
-    }).catch(function (e){
+    }).catch(function(e) {
         console.log(e);
-        res.send({loginStatus: loginstat})
+        res.send({ loginStatus: loginstat })
     });
 }
 
@@ -103,15 +95,15 @@ function signUp(req, res) {
     }
 
     // Send query to DB
-    model.user.signUp(userdata).then(function (){
+    model.user.signUp(userdata).then(function() {
         regStat = true;
         req.session.loginStatus = regStat;
 
         console.log("user sign-up: " + userdata.email)
-        res.send({registerStatus: regStat})
-    }).catch(function (e){
+        res.send({ registerStatus: regStat })
+    }).catch(function(e) {
         console.log(e);
-        res.send({registerStatus: regStat})
+        res.send({ registerStatus: regStat })
     });
 }
 
@@ -137,7 +129,6 @@ function logOut(req, res) {
 // exports
 module.exports = {
     showLoginPage,
-    resetPwd,
     validateResetPwd,
     signIn,
     signUp,

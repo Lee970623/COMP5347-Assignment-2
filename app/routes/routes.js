@@ -7,14 +7,13 @@ var router = express.Router()
 router.get('/', index_controller.showLoginPage);
 router.post('/signin', index_controller.signIn);
 router.post('/signup', index_controller.signUp);
-router.get('/reset', index_controller.resetPwd);
 router.post('/valreset', index_controller.validateResetPwd);
 router.get('/logout', index_controller.logOut);
 router.get('/main', index_controller.mainPageTest);
 
 // Blackhole
-router.get('/formsignin', index_controller.formSignIn)
-router.get('/formsignup', index_controller.formSignUp)
+router.get('/formsignin', index_controller.formSignIn);
+router.get('/formsignup', index_controller.formSignUp);
 
 // Analytic page controllers
 router.get('/analytic/view_overall', analytic_controller.viewOverall);

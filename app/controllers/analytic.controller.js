@@ -61,7 +61,7 @@ function viewDistribution(req, res) {
         "by_usertype": [],
         "by_year": []
     }
-    DBQueryDistribution(returns).then((result)=>{res.send(result)})
+    DBQueryDistribution(returns).then((result) => { res.send(result) })
 }
 
 /*-----------------------------------
@@ -69,7 +69,7 @@ function viewDistribution(req, res) {
 ------------------------------------*/
 // Get all articles
 function getAllArticlesAndRevisions(req, res) {
-    model.revisions.getAllAvaliableArticlesTitle().then((result)=>{
+    model.revisions.getAllAvaliableArticlesTitle().then((result) => {
         res.send(result)
     })
 }
@@ -108,11 +108,11 @@ async function updateArticle(req, res) {
     //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
     var parameter = "action=query&format=json&prop=revisions&" +
-        `titles=${reqdata.title}&rvstart=${reqdata.timestamp}` +
+        `titles=${reqdata.title}&rvend=${reqdata.timestamp}` +
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
-    await request(wiki_url+"?"+parameter, function (error, response, data) {
+    await request(wiki_url + "?" + parameter, function(error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -143,7 +143,7 @@ async function updateArticle(req, res) {
 
                 // Send updated length
                 console.log(updated_list)
-                res.send({"updated_num": updated_list.length})
+                res.send({ "updated_num": updated_list.length })
             }
         }
     });
@@ -154,8 +154,8 @@ async function updateArticle(req, res) {
 
 async function DBQuerySingleArticle(title, returns) {
     let _ = await Promise.all([
-        model.revisions.getAllAvaliableArticlesTitle().then((result)=>{
-            var single = result.filter(function(p){
+        model.revisions.getAllAvaliableArticlesTitle().then((result) => {
+            var single = result.filter(function(p) {
                 return p._id.title === title;
             });
             returns.revision_num = single[0].count
@@ -175,7 +175,7 @@ function viewArticleSummary(req, res) {
         "top5_user": []
     }
 
-    DBQuerySingleArticle(reqdata.title, returns).then((result)=>{
+    DBQuerySingleArticle(reqdata.title, returns).then((result) => {
         res.send(returns)
     })
 }
@@ -183,13 +183,13 @@ function viewArticleSummary(req, res) {
 // Call Reddit API to get top 3 rated posts
 function getRedditPosts(req, res) {
     var reqdata = req.query
-    var url = "https://www.reddit.com/r/news/search.json?q="
-        + reqdata.title
-        + "&restrict_sr=on&sort=top&t=all&limit=3"
+    var url = "https://www.reddit.com/r/news/search.json?q=" +
+        reqdata.title +
+        "&restrict_sr=on&sort=top&t=all&limit=3"
 
     var returns = []
 
-    request(url, function (error, response, data) {
+    request(url, function(error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -210,13 +210,13 @@ function getRedditPosts(req, res) {
 
 async function DBQueryIndividualDistribution(title, user, returns) {
     let _ = await Promise.all([
-        model.revisions.getYearAndUsertypeDistributionOfOneArticle(title).then((result)=>{
+        model.revisions.getYearAndUsertypeDistributionOfOneArticle(title).then((result) => {
             returns.bar_year_and_usertype = result
         }),
-        model.revisions.getUsertypeDistributionOfOneArticle(title).then((result)=>{
+        model.revisions.getUsertypeDistributionOfOneArticle(title).then((result) => {
             returns.pie_usertype = result
         }),
-        model.revisions.getRevisionDistributionByYearMadeFromOneUserToOneArticle(title, user).then((result)=>{
+        model.revisions.getRevisionDistributionByYearMadeFromOneUserToOneArticle(title, user).then((result) => {
             returns.bar_year_top5 = result
         })
     ])
@@ -225,8 +225,8 @@ async function DBQueryIndividualDistribution(title, user, returns) {
 
 // Get distribution for individual article
 function viewIndividualDistribution(req, res) {
-    var title = req.query.title
-    var user = req.query.user
+    var title = req.query.title;
+    var user = req.query.user;
 
     var returns = {
         "bar_year_and_usertype": [],
@@ -234,7 +234,7 @@ function viewIndividualDistribution(req, res) {
         "bar_year_top5": []
     }
 
-    DBQueryIndividualDistribution(title, user, returns).then((result)=>{
+    DBQueryIndividualDistribution(title, user, returns).then((result) => {
         res.send(result)
     })
 }
@@ -244,23 +244,21 @@ function viewIndividualDistribution(req, res) {
 ------------------------------------*/
 // Get all authors
 function getAllAuthors(req, res) {
-    model.revisions.getAllAuthors().then((result)=>{
-        res.send(result.slice(2,-1))
+    model.revisions.getAllAuthors().then((result) => {
+        res.send(result.slice(2, -1))
     })
 }
 
 // Get articles and revision numbers by the selected author.
 function viewArticleChangedByAuthor(req, res) {
     var reqdata = req.query;
-    var returns = [
-        {
-            "title": "",
-            "timestamps": [], // Timestamps of all revisions for this article
-            "revision_num": 0
-        }
-    ];
+    var returns = [{
+        "title": "",
+        "timestamps": [], // Timestamps of all revisions for this article
+        "revision_num": 0
+    }];
 
-    model.revisions.getAllArticlesAndNumberMadeByAuthor(reqdata.author).then((result)=>{
+    model.revisions.getAllArticlesAndNumberMadeByAuthor(reqdata.author).then((result) => {
         res.send(result)
     })
 }
