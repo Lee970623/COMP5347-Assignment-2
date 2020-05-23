@@ -78,17 +78,21 @@ function getAllArticlesAndRevisions(req, res) {
 function getArticleInfo(req, res) {
     let reqdata = req.query;
     const DAY_MILISEC = 1000 * 60 * 60 * 24;
+    var returns = {}
 
-    model.revisions.isArticleUpToDate(reqdata.article).then((result) => {
+    model.revisions.isArticleUpToDate(reqdata.title).then((result) => {
         var current_time = new Date();
         var last_rev_time = new Date(result[0].timestamp);
         if ((current_time - last_rev_time) / DAY_MILISEC > 1) {
-            result.is_uptodate = false;
+            returns.is_uptodate = false;
         } else {
-            result.is_uptodate = true;
+            returns.is_uptodate = true;
         }
+        returns.title = result[0].title
+        returns.timestamp = result[0].timestamp
         console.log("[query result]: " + JSON.stringify(result))
-        return result
+        console.log("[query RETURNS]: " + JSON.stringify(returns))
+        return returns
     }).then((result) => {
         res.send(result)
     })
@@ -108,7 +112,7 @@ async function updateArticle(req, res) {
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
-    await request(url, function (error, response, data) {
+    await request(wiki_url+"?"+parameter, function (error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -123,28 +127,29 @@ async function updateArticle(req, res) {
                     var rev_time = new Date(single_rev.timestamp)
 
                     // Skip the same revision
-                    if (single_rev.timestamp == result.last_date.toISOString()) {
+                    if (single_rev.timestamp == reqdata.timestamp) {
                         continue;
                     }
 
                     // Build the revision data
                     var temp_rev = {
-                        "title": reqdata.article,
+                        "title": reqdata.title,
                         "timestamp": single_rev.timestamp,
                         "user": single_rev.user,
                         "usertype": "regular"
                     }
                     updated_list.push(temp_rev)
                 }
+
+                // Send updated length
+                console.log(updated_list)
+                res.send({"updated_num": updated_list.length})
             }
         }
     });
 
     // Update revisions in DB
     await model.revisions.insertRevisions(reqdata.title, updated_list)
-
-    // Send updated length
-    await res.send({"updated_num": updated_list.length})
 }
 
 async function DBQuerySingleArticle(title, returns) {
@@ -177,7 +182,7 @@ function viewArticleSummary(req, res) {
 
 // Call Reddit API to get top 3 rated posts
 function getRedditPosts(req, res) {
-    var reqdata = req.query;
+    var reqdata = req.query
     var url = "https://www.reddit.com/r/news/search.json?q="
         + reqdata.title
         + "&restrict_sr=on&sort=top&t=all&limit=3"
@@ -199,9 +204,8 @@ function getRedditPosts(req, res) {
                 returns.push(temp)
             }
         }
-    });
-
-    res.send(returns)
+        res.send(returns)
+    })
 }
 
 async function DBQueryIndividualDistribution(title, user, returns) {

@@ -32,7 +32,7 @@ function updateDropdown() {
 // Check if the selected article is up-to-date
 function checkArticle() {
     var formdata = {
-        "article": $("#selected_article").val()
+        "title": $("#selected_article").val()
     }
 
     $.ajax({
@@ -143,6 +143,7 @@ function getRedditPosts(formdata) {
         dataType: 'JSON',
         success: function (res) {
             posts = res
+            console.log(posts)
         },
         error: function (xhr) {
             M.toast({html: "Error in getRedditPosts: " + xhr.status + " " + xhr.statusText})
