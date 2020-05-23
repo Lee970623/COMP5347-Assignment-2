@@ -78,7 +78,8 @@ function updateArticle(formdata) {
     }).done(function() {
         if (update_num > 0) {
             var message = "Updated " + update_num + " revisions";
-            $('#updateData').html(`<h6 class="teal-text">${message}</h6>`);
+            // $('#updateData').html(`<h6 class="teal-text">${message}</h6>`);
+            M.toast({ html: message });
         } else {
             M.toast({ html: "No new revisions on wiki." });
         }
