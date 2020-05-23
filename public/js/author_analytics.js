@@ -1,14 +1,15 @@
-$(document).ready(function () {
+$(document).ready(function() {
     $('.collapsible').collapsible();
-    var elems = document.querySelectorAll('.autocomplete');
-    var instance = M.Autocomplete.getInstance(elems);
-    updateAutoComplete(instance);
+    var elems = $('.autocomplete');
+    var instance = M.Autocomplete.init(elems, { "limit": 10 });
+    var instances = M.Autocomplete.getInstance(elems);
+    updateAutoComplete(instances);
 
     $("#authorSearch").click(searchAuthor);
 });
 
 function searchAuthor() {
-    var formdata = {"author": $("input #username").val()}
+    var formdata = { "author": $("#username").val() }
     var articles = [];
 
     $.ajax({
@@ -16,46 +17,51 @@ function searchAuthor() {
         url: '/analytics/view_author',
         data: formdata,
         dataType: 'JSON',
-        success: function (res) {
+        success: function(res) {
             articles = res
         },
-        error: function (xhr) {
-            M.toast({html: "Error in searchAuthor: " + xhr.status + " " + xhr.statusText})
+        error: function(xhr) {
+            M.toast({ html: "Error in searchAuthor: " + xhr.status + " " + xhr.statusText })
         }
-    }).done(function () {
-        var collapsible_head = "<ul class='collapsible'>"
+    }).done(function() {
+        $("#collapsibleArticle").empty();
 
-        for (each of articles){
-            var collapsible_body = `<li><div class="collapsible-header">Title: ${each._id.title}&nbsp;Revisions: ${each.count}</div>`
+        var collapsible_end = '</ul>'
+        var collapsible_body = []
+
+        for (each of articles) {
+            collapsible_body
+                .push(`<li><div class="collapsible-header">Title: ${each._id.title}&nbsp;&nbsp;&nbsp;Revisions: ${each.count}</div>`)
 
             var time_list = []
-            for (t of each.timestamp){
-                time_list.push(`<p>t</p>`)
+            for (t of each.timestamp) {
+                time_list.push(`<p>${t}</p>`)
             }
             var ts = time_list.join('');
 
-            collapsible_body += `<div class="collapsible-body">${ts}</div> </li>`
+            collapsible_body
+                .push(`<div class="collapsible-body"><p>Revision time: </p>${ts}</div></li>`)
         }
-        collapsible_head += collapsible_body
-
-        $("#showUserArticle").empty();
-        $("#showUserArticle").append(collapsible_head);
+        var body = collapsible_body.join('');
+        $("#collapsibleArticle").append(body + collapsible_end);
     })
 }
 
-function updateAutoComplete(instance) {
-    var author_list = []
+function updateAutoComplete(instances) {
+    var author_list = {};
     $.ajax({
         type: 'GET',
         url: '/analytics/get_all_author',
         dataType: 'JSON',
-        success: function (res) {
-            author_list = res
+        success: function(res) {
+            for (var i in res) {
+                author_list[res[i]['_id']] = null;
+            }
         },
-        error: function (xhr) {
-            M.toast({html: "Error in updateAutoComplete: " + xhr.status + " " + xhr.statusText})
+        error: function(xhr) {
+            M.toast({ html: "Error in updateAutoComplete: " + xhr.status + " " + xhr.statusText })
         }
-    }).done(function () {
-        instance.updateData({author_list})
+    }).done(function() {
+        instances.updateData(author_list);
     })
 }
