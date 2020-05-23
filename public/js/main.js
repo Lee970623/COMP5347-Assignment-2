@@ -1,11 +1,13 @@
 var el = $('.tabs').first()[0];
 var instance = M.Tabs.init(el);
 
-$(document).ready(function () {
+$(document).ready(function() {
     $('select').formSelect(); // built-in initialization method in materialize
     $('#signin').click(varifySignin);
     $('#signup').click(signUp);
     $('#reset-confirm').click(resetPwd);
+    $("#logout").click(userLogout);
+    $('.modal').modal(); // modal initialization
 });
 
 // Check if a variable is empty
@@ -38,7 +40,7 @@ function varifySignin() {
 
     // Verify input data
     if (isEmpty(formdata.email) || isEmpty(formdata.password)) {
-        M.toast({html: "Can not leave as empty!"})
+        M.toast({ html: "Can not leave as empty!" })
         return false
     } else {
         console.log(formdata); // Test line
@@ -49,12 +51,12 @@ function varifySignin() {
             url: '/signin',
             dataType: 'JSON',
             data: formdata,
-            success: function (res) {
+            success: function(res) {
                 if (res.loginStatus) {
                     window.location.href = '/main'
                 } else {
                     //alert("Wrong username or password.")
-                    M.toast({html: "Wrong username or password."})
+                    M.toast({ html: "Wrong username or password." })
                 }
             }
         })
@@ -65,16 +67,16 @@ function varifySignin() {
 // Sign-up
 function signUp() {
     var formdata = {
-        email: $('#re_email').val(),
+        email: $("#re_email").val(),
         password: $('#re_password').val(),
         firstname: $('#firstname').val(),
         lastname: $('#lastname').val(),
-        question: $('#questions').val(),
+        question: $("#questions").val(),
         answer: $('#answer').val(),
     }
 
     if (isEmpty(formdata.email) || isEmpty(formdata.password)) {
-        M.toast({html: "Can not leave as empty!"})
+        M.toast({ html: "Can not leave as empty!" })
         return false
     } else {
         $.ajax({
@@ -82,12 +84,12 @@ function signUp() {
             url: '/signup',
             dataType: 'JSON',
             data: formdata,
-            success: function (res) {
+            success: function(res) {
                 if (res.registerStatus) {
                     window.location.href = '/main'
                 } else {
                     // alert('Sign-up failed.')
-                    M.toast({html: "Sign-up failed, please try again."})
+                    M.toast({ html: "Sign-up failed, please try again." })
                 }
             }
         });
@@ -105,7 +107,7 @@ function resetPwd() {
     }
 
     if (isEmpty(formdata.email) || isEmpty(formdata.old_pwd) || isEmpty(formdata.new_pwd)) {
-        M.toast({html: "Can not leave as empty!"})
+        M.toast({ html: "Can not leave as empty!" })
         return false
     } else {
         $.ajax({
@@ -113,12 +115,14 @@ function resetPwd() {
             url: '/valreset',
             dataType: 'JSON',
             data: formdata,
-            success: function (res) {
+            success: function(res) {
+
                 if (res.resetStatus) {
                     window.location.href = '/'
                 } else {
                     // alert('Sign-up failed.')
-                    M.toast({html: "Password reset failed, please try again."})
+                    M.toast({ html: "Password reset failed, please try again." })
+
                 }
             }
         });
@@ -128,5 +132,15 @@ function resetPwd() {
 
 // Log out
 function userLogout() {
-    // TODO: Clear session and redirect to login page.
+    $.ajax({
+        type: 'GET',
+        url: '/logout',
+        dataType: 'JSON',
+        success: function(res) {
+            if (isEmpty(res.session)) {
+                window.location.href = '/'
+            }
+        }
+    });
+
 }
