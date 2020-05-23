@@ -1,6 +1,5 @@
 # COMP5347_Assignment_2
 Repository of Group 4 for COMP5437 Assignment 2.
-<<<<<<< HEAD
 
 To start MongoDB:
 
@@ -30,5 +29,3 @@ Windows:
 start_db_server.bat
 ## Import revisions
 import_revisions.bat
-=======
->>>>>>> master
