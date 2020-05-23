@@ -316,12 +316,19 @@ revisionSchema.statics.updateNewRevisions = function(title){
     return this.updateMany({
         "title": title,
         "date": { $exists: false }
-    }, 
+    },
+    [ 
     {
         $set: {
             "date": {
                 $dateFromString: { dateString: "$timestamp" }
             }
+        }
+    }
+    ],
+    function(err){
+        if(err){
+            console.log(err);
         }
     }
     )
@@ -533,28 +540,28 @@ function readTextAndUpdateUsertypeForRevison(file, type) {
 //       }
 //     })
 //
-// revisions.updateMany(
-//     {},
-//     [
-//     {
-//         $set:
-//         {
-//             "date":
-//             {
-//                 $dateFromString :{ dateString: "$timestamp"}
-//             }
-//         }
-//     }
-//     // {
-//     //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
-//     // }
-//     ],
-//     function(err){
-//         if(err){
-//             console.error(err)
-//         }
-//     }
-// )
+revisions.updateMany(
+    {},
+    [
+    {
+        $set:
+        {
+            "date":
+            {
+                $dateFromString :{ dateString: "$timestamp"}
+            }
+        }
+    }
+    // {
+    //     $unset : ["timestamp","revid","parentid","minor","userid","size","sha1","parsedocument"]
+    // }
+    ],
+    function(err){
+        if(err){
+            console.error(err)
+        }
+    }
+)
 //
 
 module.exports = { user, revisions };
