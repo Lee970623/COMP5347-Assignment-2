@@ -4,14 +4,14 @@ $(document).ready(function () {
 
 // Change the top number displayed by analytics.
 function viewAnalytics() {
-    var num = parseInt($("#titlenum").val());
+    var num = parseInt($("#titlenum").val()); // TODO: check html id
     var formdata = {"topnum": num};
 
     $.ajax({
         type: "GET",
         url: "/analytic/view_overall",
         dataType: "JSON",
-        data: num,
+        data: formdata,
         success: function (res) {
             fillTableRevision(res.top_revision, num);
             fillTableEdit(res.top_edit, num);
@@ -38,15 +38,15 @@ function fillTableRevision(res, num) {
     for (var i=0; i < num; i++){
         table_row += `<tr><td>${highest_articles[i]}</td><td>${highest_revisions[i]}</td></tr>`
     }
-    $("#highestRev tbody").empty();
-    $("#highestRev tbody").append(table_head + table_row + table_end);
+    $("#highestRev").empty();
+    $("#highestRev").append(table_head + table_row + table_end);
 
     table_row = ""; // Clear the string
     for (i=0; i<num; i++){
         table_row += `<tr><td>${lowest_articles[i]}</td><td>${lowest_revisions[i]}</td></tr>`
     }
-    $("#lowestRev tbody").empty();
-    $("#lowestRev tbody").append(table_head + table_row + table_end)
+    $("#lowestRev").empty();
+    $("#lowestRev").append(table_head + table_row + table_end)
 }
 
 function fillTableEdit(res, num) {
@@ -64,15 +64,15 @@ function fillTableEdit(res, num) {
     for (var i=0; i < num; i++){
         table_row += `<tr><td>${largest_articles[i]}</td><td>${largest_edits[i]}</td></tr>`
     }
-    $("#largestGroup tbody").empty();
-    $("#largestGroup tbody").append(table_head + table_row + table_end);
+    $("#largestGroup").empty();
+    $("#largestGroup").append(table_head + table_row + table_end);
 
     table_row = ""; // Clear the string
     for (i=0; i<num; i++){
         table_row += `<tr><td>${smallest_articles[i]}</td><td>${smallest_edits[i]}</td></tr>`
     }
-    $("#smallestGroup tbody").empty();
-    $("#smallestGroup tbody").append(table_head + table_row + table_end)
+    $("#smallestGroup").empty();
+    $("#smallestGroup").append(table_head + table_row + table_end)
 }
 
 function fillTableHistory(res, num) {
@@ -90,15 +90,15 @@ function fillTableHistory(res, num) {
     for (var i=0; i < num; i++){
         table_row += `<tr><td>${longest_articles[i]}</td><td>${longest_history[i]}</td></tr>`
     }
-    $("#longestAge tbody").empty();
-    $("#longestAge tbody").append(table_head + table_row + table_end);
+    $("#longestAge").empty();
+    $("#longestAge").append(table_head + table_row + table_end);
 
     table_row = ""; // Clear the string
     for (i=0; i<num; i++){
         table_row += `<tr><td>${shortest_articles[i]}</td><td>${shortest_history[i]}</td></tr>`
     }
-    $("#shortestAge tbody").empty();
-    $("#shortestAge tbody").append(table_head + table_row + table_end)
+    $("#shortestAge").empty();
+    $("#shortestAge").append(table_head + table_row + table_end)
 }
 
 // Get data from DB and display as charts.

@@ -133,5 +133,10 @@ function userLogout() {
         type: 'GET',
         url: '/logout',
         dataType: 'JSON',
+        success: function (res) {
+            if(isEmpty(res.session)){
+                window.location.href = '/'
+            }
+        }
     });
 }

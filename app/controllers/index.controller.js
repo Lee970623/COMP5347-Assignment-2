@@ -10,6 +10,14 @@ function showLoginPage(req, res) {
     res.render("index.ejs");
 }
 
+// Black hole router
+function formSignIn(req, res) {
+}
+
+function formSignUp(req, res) {
+}
+
+
 // TODO: deprecated function
 function resetPwd(req, res) {
     res.render("reset.ejs");
@@ -67,7 +75,6 @@ function signIn(req, res) {
             req.session.loginStatus = loginstat;
 
             console.log("user login success: " + userdata.email)
-            // Return data to ajax method so that success callback can execute.
             res.send({loginStatus: loginstat})
         }else{
             console.log("user login failed: " + userdata.email)
@@ -123,7 +130,7 @@ function mainPageTest(req, res) {
 // User logout
 function logOut(req, res) {
     req.session.destroy();
-    res.redirect('/');
+    res.send(req.session)
 }
 
 
@@ -135,5 +142,7 @@ module.exports = {
     signIn,
     signUp,
     logOut,
-    mainPageTest
+    mainPageTest,
+    formSignIn,
+    formSignUp
 };

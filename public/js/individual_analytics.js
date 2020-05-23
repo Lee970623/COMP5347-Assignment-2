@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    updateDropdown();
+    updateDropdown();// TODO: check html id
     $("select option:selected").click(checkArticle);
     $("#searchArticle").click(displaySummary);
     $("#filter").click(filterSummaryAndChart);
@@ -119,6 +119,16 @@ function displaySummary() {
         $("#titleplace").empty();
         $("#titleplace").append(table_head+"</tbody></table>")
 
+        var radio_select = "<form action='#'>"
+        for (var s of summary.top5_user){
+            var radio = `<p><label><input class="topuser" type="radio" name="username" value="${s._id.user}"/><span>${s._id.user}</span></label></p>`
+            radio_select += radio
+        }
+
+        // TODO: 需要一个div
+        $("#select_user").empty()
+        $("#select_user").append(radio_select+"</form>")
+
     }).then(getRedditPosts(formdata))
 }
 
@@ -153,7 +163,10 @@ function getRedditPosts(formdata) {
 
 // Show charts for the selected article.
 function filterSummaryAndChart() {
-    var formdata = {"title": $("#selected_article").val()}
+    var formdata = {
+        "title": $("#selected_article").val(),
+        "user": $(".topuser :checked").val()
+    }
     $.ajax({
         method: 'GET',
         url: '/analytic/get_individual_chart',

@@ -12,6 +12,10 @@ router.post('/valreset', index_controller.validateResetPwd);
 router.get('/logout', index_controller.logOut);
 router.get('/main', index_controller.mainPageTest);
 
+// Blackhole
+router.get('/formsignin', index_controller.formSignIn)
+router.get('/formsignup', index_controller.formSignUp)
+
 // Analytic page controllers
 router.get('/analytic/view_overall', analytic_controller.viewOverall);
 router.get('/analytic/view_charts', analytic_controller.viewDistribution);

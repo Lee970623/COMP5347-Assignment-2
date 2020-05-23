@@ -204,7 +204,7 @@ function getRedditPosts(req, res) {
     res.send(returns)
 }
 
-async function DBQueryIndividualDistribution(title, returns) {
+async function DBQueryIndividualDistribution(title, user, returns) {
     let _ = await Promise.all([
         model.revisions.getYearAndUsertypeDistributionOfOneArticle(title).then((result)=>{
             returns.bar_year_and_usertype = result
@@ -212,7 +212,7 @@ async function DBQueryIndividualDistribution(title, returns) {
         model.revisions.getUsertypeDistributionOfOneArticle(title).then((result)=>{
             returns.pie_usertype = result
         }),
-        model.revisions.getTopFiveRegularUsers(title).then((result)=>{
+        model.revisions.getRevisionDistributionByYearMadeFromOneUserToOneArticle(title, user).then((result)=>{
             returns.bar_year_top5 = result
         })
     ])
@@ -222,13 +222,15 @@ async function DBQueryIndividualDistribution(title, returns) {
 // Get distribution for individual article
 function viewIndividualDistribution(req, res) {
     var title = req.query.title
+    var user = req.query.user
+
     var returns = {
         "bar_year_and_usertype": [],
         "pie_usertype": [],
         "bar_year_top5": []
     }
 
-    DBQueryIndividualDistribution(title, returns).then((result)=>{
+    DBQueryIndividualDistribution(title, user, returns).then((result)=>{
         res.send(result)
     })
 }
@@ -239,7 +241,7 @@ function viewIndividualDistribution(req, res) {
 // Get all authors
 function getAllAuthors(req, res) {
     model.revisions.getAllAuthors().then((result)=>{
-        res.send(result.slice(2,))
+        res.send(result.slice(2,-1))
     })
 }
 
