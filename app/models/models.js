@@ -137,11 +137,7 @@ var user = db.model('User', userSchema, 'users');
 var revisionSchema = new db.Schema({
     anon: Boolean,
     user: String,
-    timestamp: {
-        type: String,
-        unique: true,
-        required: true
-    },
+    timestamp: String,
     title: String,
     usertype: String,
     date: Date

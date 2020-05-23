@@ -90,16 +90,21 @@ function getArticleInfo(req, res) {
         }
         returns.title = result[0].title
         returns.timestamp = result[0].timestamp
-        console.log("[query result]: " + JSON.stringify(result))
-        console.log("[query RETURNS]: " + JSON.stringify(returns))
         return returns
     }).then((result) => {
         res.send(result)
     })
 }
 
+async function DBUpdateRevisions(revisions){
+    let _ = await Promise.all([
+        model.revisions.insertRevisions(revisions)
+    ])
+    return {"updateStat": "success"}
+}
+
 // Update article`s revisions by calling Wikipedia`s API.
-async function updateArticle(req, res) {
+function updateArticle(req, res) {
     let reqdata = req.query;
     const wiki_url = "https://en.wikipedia.org/w/api.php";
 
@@ -112,7 +117,7 @@ async function updateArticle(req, res) {
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
-    await request(wiki_url + "?" + parameter, function(error, response, data) {
+    request(wiki_url + "?" + parameter, function(error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -141,15 +146,19 @@ async function updateArticle(req, res) {
                     updated_list.push(temp_rev)
                 }
 
-                // Send updated length
                 console.log(updated_list)
+
+                // Update revisions in DB
+                DBUpdateRevisions(updated_list).then((result)=>{
+                    model.revisions.updateNewRevisions(reqdata.title).then((res)=>{
+                        console.log(res)
+                    })
+                })
+                // Send updated length
                 res.send({ "updated_num": updated_list.length })
             }
         }
     });
-
-    // Update revisions in DB
-    await model.revisions.insertRevisions(reqdata.title, updated_list)
 }
 
 async function DBQuerySingleArticle(title, returns) {
