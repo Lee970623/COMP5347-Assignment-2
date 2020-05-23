@@ -49,7 +49,12 @@ async function DBQueryDistribution(returns) {
             returns.by_usertype = result
         }),
         model.revisions.getRevisionNumberByYearAndByUserType().then((result) => {
-            returns.by_year = result
+            if (result[0]._id.year == null) {
+                returns.by_year = result.slice(1,)
+            } else {
+                returns.by_year = result
+            }
+
         })
     ])
     return returns
@@ -61,12 +66,15 @@ function viewDistribution(req, res) {
         "by_usertype": [],
         "by_year": []
     }
-    DBQueryDistribution(returns).then((result) => { res.send(result) })
+    DBQueryDistribution(returns).then((result) => {
+        res.send(result)
+    })
 }
 
 /*-----------------------------------
     Individual article analytics
 ------------------------------------*/
+
 // Get all articles
 function getAllArticlesAndRevisions(req, res) {
     model.revisions.getAllAvaliableArticlesTitle().then((result) => {
@@ -96,7 +104,7 @@ function getArticleInfo(req, res) {
     })
 }
 
-async function DBUpdateRevisions(revisions){
+async function DBUpdateRevisions(revisions) {
     let _ = await Promise.all([
         model.revisions.insertRevisions(revisions)
     ])
@@ -117,7 +125,7 @@ function updateArticle(req, res) {
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
-    request(wiki_url + "?" + parameter, function(error, response, data) {
+    request(wiki_url + "?" + parameter, function (error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -145,17 +153,12 @@ function updateArticle(req, res) {
                     }
                     updated_list.push(temp_rev)
                 }
-
-                console.log(updated_list)
-
                 // Update revisions in DB
-                DBUpdateRevisions(updated_list).then((result)=>{
-                    model.revisions.updateNewRevisions(reqdata.title).then((res)=>{
-                        console.log(res)
-                    })
+                DBUpdateRevisions(updated_list).then((result) => {
+                    model.revisions.updateNewRevisions(reqdata.title)
                 })
                 // Send updated length
-                res.send({ "updated_num": updated_list.length })
+                res.send({"updated_num": updated_list.length})
             }
         }
     });
@@ -164,7 +167,7 @@ function updateArticle(req, res) {
 async function DBQuerySingleArticle(title, returns) {
     let _ = await Promise.all([
         model.revisions.getAllAvaliableArticlesTitle().then((result) => {
-            var single = result.filter(function(p) {
+            var single = result.filter(function (p) {
                 return p._id.title === title;
             });
             returns.revision_num = single[0].count
@@ -198,7 +201,7 @@ function getRedditPosts(req, res) {
 
     var returns = []
 
-    request(url, function(error, response, data) {
+    request(url, function (error, response, data) {
         if (error) {
             console.log(error)
         } else if (response.statusCode != 200) {
@@ -220,7 +223,11 @@ function getRedditPosts(req, res) {
 async function DBQueryIndividualDistribution(title, user, returns) {
     let _ = await Promise.all([
         model.revisions.getYearAndUsertypeDistributionOfOneArticle(title).then((result) => {
-            returns.bar_year_and_usertype = result
+            if (result[0]._id.year == null) {
+                returns.bar_year_and_usertype = result.slice(1,)
+            } else {
+                returns.bar_year_and_usertype = result
+            }
         }),
         model.revisions.getUsertypeDistributionOfOneArticle(title).then((result) => {
             returns.pie_usertype = result
@@ -251,6 +258,7 @@ function viewIndividualDistribution(req, res) {
 /*-----------------------------------
           Author analytics
 ------------------------------------*/
+
 // Get all authors
 function getAllAuthors(req, res) {
     model.revisions.getAllAuthors().then((result) => {

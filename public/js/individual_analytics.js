@@ -195,13 +195,13 @@ function showDistributionPie() {
 }
 
 function showTop5UserBar() {
-    var formdata = { "title": $("#selected_article").val(), "user": $("select_top_user").val() }
+    var formdata = { "title": $("#selected_article").val(), "user": $("#select_top_user :selected").val() }
     $.get('/analytic/get_individual_chart', formdata, res => {
         var graphData = new google.visualization.DataTable();
         graphData.addColumn('string', 'Year');
         graphData.addColumn('number', 'Revisions');
         $.each(res.bar_year_top5, function(key, val) {
-            graphData.addRow([val._id.year, val.count]);
+            graphData.addRow([val._id.year.toString(), val.count]);
         });
         // chart title
         var options = setChartTitle('User revisions by year');
@@ -243,7 +243,7 @@ function drawBar(data, selector) {
     graphData.addColumn('number', 'Bot user');
     graphData.addColumn('number', 'Regular user');
     $.each(data, function(key, val) {
-        graphData.addRow([val._id.year, val.admin, val.anonymous, val.bot, val.regular]);
+        graphData.addRow([val._id.year.toString(), val.admin, val.anonymous, val.bot, val.regular]);
     });
     // chart title
     var options = setChartTitle('Distribution by user type');
