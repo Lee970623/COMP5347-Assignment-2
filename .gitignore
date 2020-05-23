@@ -1,5 +1,6 @@
 # Node packages
 node_modules/
+<<<<<<< HEAD
 package-lock.json
 package.json
 
@@ -9,3 +10,9 @@ app/controllers/test.js
 # Idea config files
 /.idea
 public/data
+=======
+package.json
+
+# Idea config files
+/.idea
+>>>>>>> master

@@ -116,11 +116,13 @@ function resetPwd() {
             dataType: 'JSON',
             data: formdata,
             success: function(res) {
+
                 if (res.resetStatus) {
                     window.location.href = '/'
                 } else {
                     // alert('Sign-up failed.')
                     M.toast({ html: "Password reset failed, please try again." })
+
                 }
             }
         });
@@ -140,4 +142,5 @@ function userLogout() {
             }
         }
     });
+
 }
