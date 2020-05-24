@@ -10,10 +10,6 @@ function showLoginPage(req, res) {
     res.render("index.ejs");
 }
 
-// Black hole router
-function formSignIn(req, res) {}
-function formSignUp(req, res) {}
-
 // Validation for reset password function.
 function validateResetPwd(req, res) {
     var resetStat = false
@@ -63,6 +59,7 @@ function signIn(req, res) {
             res.send({ loginStatus: loginstat })
         } else {
             console.log("user login failed: " + userdata.email)
+            res.send({ loginStatus: loginstat })
         }
     }).catch(function(e) {
         console.log(e);
@@ -84,7 +81,7 @@ function signUp(req, res) {
         firstname: reqdata["firstname"],
         lastname: reqdata["lastname"],
         question: reqdata["question"],
-        answer: reqdata["question"]
+        answer: reqdata["answer"]
     }
 
     // Send query to DB
@@ -119,6 +116,4 @@ module.exports = {
     signIn,
     signUp,
     mainPageTest,
-    formSignIn,
-    formSignUp
 };

@@ -6,7 +6,6 @@ $(document).ready(function() {
     $('#signin').click(varifySignin);
     $('#signup').click(signUp);
     $('#reset-confirm').click(resetPwd);
-    $("#logout").click(userLogout);
     $('.modal').modal(); // modal initialization
 });
 
@@ -127,20 +126,4 @@ function resetPwd() {
             }
         });
     }
-}
-
-
-// Log out
-function userLogout() {
-    $.ajax({
-        type: 'GET',
-        url: '/logout',
-        dataType: 'JSON',
-        success: function(res) {
-            if (isEmpty(res.session)) {
-                window.location.href = '/'
-            }
-        }
-    });
-
 }
