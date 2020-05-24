@@ -46,6 +46,8 @@ function drawBar(data, selector) {
 }
 
 $(document).ready(function() {
+    
+    $('#titlenum').keypress(() => { return (/[\d]/.test(String.fromCharCode(event.keyCode))) })
 
     viewAnalytics();
 
