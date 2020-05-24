@@ -8,7 +8,6 @@ router.get('/', index_controller.showLoginPage);
 router.post('/signin', index_controller.signIn);
 router.post('/signup', index_controller.signUp);
 router.post('/valreset', index_controller.validateResetPwd);
-router.get('/logout', index_controller.logOut);
 router.get('/main', index_controller.mainPageTest);
 
 // Blackhole
