@@ -1,16 +1,19 @@
 # COMP5347_Assignment_2
 Repository of Group 4 for COMP5437 Assignment 2.
-
-To start MongoDB:
-
+## Start DB
+### Batch script
+start_db_server.bat
+### Command line
 Mac:
     brew services start mongodb-community@4.2
 
 Windows:
     mongod -dbpath <"your specified location">
-
-To import revisions into MongoDB, use the following scripts:
     
+## Import revisions
+### Batch script
+import_revisions.bat
+### Command line
 Mac:
     cd ./public/data/Dataset_22_March_2020/revisions
     for filename in *            
@@ -25,7 +28,3 @@ Windows:
         "mongoimport.exe" --jsonArray --db Assignment --collection revision --file %%~nf.json
     )
 
-## Start DB
-start_db_server.bat
-## Import revisions
-import_revisions.bat
