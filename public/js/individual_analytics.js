@@ -77,7 +77,7 @@ function updateArticle(formdata) {
         }
     }).done(function() {
         if (update_num > 0) {
-            var message = "Updated " + update_num + " revisions";
+            var message = "Updated " + update_num + " revisions, refresh to see new article list.";
             // $('#updateData').html(`<h6 class="teal-text">${message}</h6>`);
             M.toast({ html: message });
         } else {

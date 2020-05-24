@@ -81,7 +81,8 @@ userSchema.statics.resetPWD = function(resetData) {
         function(err, doc) {
             if (err) {
                 console.log("FindOneAndUpdat: " + err);
-
+            } else {
+                console.log(JSON.stringify(doc))
             }
         }
     )

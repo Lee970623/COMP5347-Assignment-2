@@ -32,18 +32,12 @@ function validateResetPwd(req, res) {
     }
 
     // TODO: DB query does not return a valid result
-    const promise = new Promise((userdata, reject) => {
-        return model.user.resetPWD(userdata)
-    })
-    promise.then(function(result) {
+    model.user.resetPWD(userdata).then(function(result) {
         console.log("controller recieved: " + JSON.stringify(result));
-        // console.log("recieved " + JSON.stringify(result))
         resetStat = true;
         req.session.loginStatus = false;
         res.send({ resetStatus: resetStat })
     })
-
-
 }
 
 // User sign-in.
