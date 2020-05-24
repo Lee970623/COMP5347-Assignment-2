@@ -170,21 +170,25 @@ revisionSchema.statics.findArticlesAndRevisionNumber = function(direction = 1, l
 // The number of unique users is a good indicator of an article’s popularity.
 // The top two articles edited by the smallest group of registered users and their group size.
 revisionSchema.statics.findArticlesAndRevisionNumberFromRegisteredUsers = function(direction = 1, limits = 2, callback) {
-    pipeline = [{
-            $match: { usertype: { $not: { $eq: "bot" } } }
-        },
-        {
-            $group: {
-                _id: { title: "$title" },
-                count: { $sum: 1 }
-            }
-        },
-        {
-            $sort: { count: direction }
-        },
-        {
-            $limit: limits
+    pipeline = [
+    {    
+        $match: { usertype: { $not: { $eq: "bot" }}}
+    },
+    {
+        $match: { usertype: { $not: { $eq: "anonymous" }}}
+    },
+    {
+        $group: {
+            _id: { title: "$title" },
+            count: { $sum: 1 }
         }
+    },
+    {
+        $sort: { count: direction }
+    },
+    {
+        $limit: limits
+    }
     ]
     return this.aggregate(pipeline).exec(callback);
 }
@@ -515,31 +519,31 @@ function readTextAndUpdateUsertypeForRevison(file, type) {
 }
 
 // -----------------------------------------
-// -------Disabled for test purposes--------
+// ------Disabled following for test--------
 // -----------------------------------------
 
-// // Use abslout path here
-// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
-// readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
-//
-// revisions.updateMany(
-//     {anon:{$exists:true}},
-//     { $set:{"usertype":"anonymous"}},
-//     function(err){
-//       if(err){
-//         console.error(err)
-//       }
-//     })
-//
-// revisions.updateMany(
-//     { usertype:{$exists:false}},
-//     { $set:{"usertype":"regular"}},
-//     function(err){
-//       if(err){
-//         console.error(err)
-//       }
-//     })
-//
+// Use abslout path here
+readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/administrators.txt", "admin")
+readTextAndUpdateUsertypeForRevison("D:\\Workspace\\Github-workspace\\COMP5347_Assignment_2/public/data/Dataset_22_March_2020/bots.txt", "bot")
+
+revisions.updateMany(
+    {anon:{$exists:true}},
+    { $set:{"usertype":"anonymous"}},
+    function(err){
+      if(err){
+        console.error(err)
+      }
+    })
+
+revisions.updateMany(
+    { usertype:{$exists:false}},
+    { $set:{"usertype":"regular"}},
+    function(err){
+      if(err){
+        console.error(err)
+      }
+    })
+
 revisions.updateMany(
     {},
     [
@@ -562,6 +566,5 @@ revisions.updateMany(
         }
     }
 )
-//
 
 module.exports = { user, revisions };
