@@ -100,8 +100,6 @@ function viewAnalytics() {
     var num = parseInt($("#titlenum").val());
     var formdata = { "topnum": num };
 
-    console.log(num)
-
     $.ajax({
         type: "GET",
         url: "/analytic/view_overall",

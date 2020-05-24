@@ -12,7 +12,6 @@ function showLoginPage(req, res) {
 
 // Black hole router
 function formSignIn(req, res) {}
-
 function formSignUp(req, res) {}
 
 // Validation for reset password function.
@@ -119,20 +118,12 @@ function mainPageTest(req, res) {
     }
 }
 
-// User logout
-function logOut(req, res) {
-    req.session.destroy();
-    res.send(req.session)
-}
-
-
 // exports
 module.exports = {
     showLoginPage,
     validateResetPwd,
     signIn,
     signUp,
-    logOut,
     mainPageTest,
     formSignIn,
     formSignUp

@@ -1,5 +1,6 @@
 var model = require('../models/models')
 var request = require('request')
+var querystring = require('querystring')
 
 /*-----------------------------------
     Overview analytics
@@ -18,10 +19,10 @@ async function DBQueryExtremeRevisions(limit, returns) {
         model.revisions.findArticlesAndRevisionNumberFromRegisteredUsers(1, limit).then((result) => {
             returns.top_edit.smallest = result
         }),
-        model.revisions.findArticlesWithHistoryAndDuration(-1, limit).then((result) => {
+        model.revisions.findArticlesWithHistoryAndDuration(1, limit).then((result) => {
             returns.top_history.longest = result
         }),
-        model.revisions.findArticlesWithHistoryAndDuration(1, limit).then((result) => {
+        model.revisions.findArticlesWithHistoryAndDuration(-1, limit).then((result) => {
             returns.top_history.shortest = result
         })
     ])
@@ -121,7 +122,7 @@ function updateArticle(req, res) {
     //     "?action=query&format=json&prop=revisions&titles=Australia&rvlimit=5&rvprop=timestamp|userid|user|ids"
 
     var parameter = "action=query&format=json&prop=revisions&" +
-        `titles=${reqdata.title}&rvend=${reqdata.timestamp}` +
+        `titles=${querystring.escape(reqdata.title)}&rvend=${reqdata.timestamp}` +
         "&revir=newer&rvprop=timestamp|userid|user|ids&rvlimit=max";
 
     var updated_list = [];
