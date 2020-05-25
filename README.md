@@ -50,14 +50,14 @@ for %%f in (*.json) do (
 )
 ```
 
-### Start Application
+## Start Application
 In order to start the application, the dependencies specified in package.json must be meet. Just simply
 ```
 npm install <moduls> --save
 ```
 for each module shown in package.json.
 
-### Open Application on Broswer
+## Open Application on Broswer
 The default port is set as [localhost:3000](localhost:3000), if this one is occupied, please either choose another browser or
 modify the port number in __index.js__ on line 26. The alternaltive port would be 80.
 
