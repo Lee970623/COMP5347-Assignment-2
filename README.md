@@ -1,5 +1,10 @@
 # COMP5347_Assignment_2
-Repository of Group 4 for COMP5437 Assignment 2.
+Repository of Group 4 for COMP5437 Assignment 2 from the University of Sydney.
+
+Members:
+- [Chenghao Li](https://github.com/1lch2): The controllers and the majority of front-end JS.
+- [Zidong Li](https://github.com/Lee970623): The views of front-end design and the JS of charts and other interactions.
+- Limou Zhou: The models including all database query methods.
 
 This project is about the statistics of wiki-pedia revisions of articles. It includes several analysis, such as overall, individual and author. The different analysis consist of related statistics of the revisions. For example, the overall analysis
 will show the revisions with longest or shortest history, the individual analysis will show the top five users of one particular
